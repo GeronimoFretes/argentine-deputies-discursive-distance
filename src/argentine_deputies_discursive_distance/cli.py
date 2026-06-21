@@ -18,6 +18,10 @@ from argentine_deputies_discursive_distance.pdf_batch import (
     PdfBatchError,
     run_pdf_batch,
 )
+from argentine_deputies_discursive_distance.structure_batch import (
+    StructureBatchError,
+    run_structure_batch,
+)
 
 DEFAULT_CONFIG_PATH = Path("config/pipeline.toml")
 DEFAULT_RAW_DIR = Path("data/raw")
@@ -28,6 +32,10 @@ DEFAULT_PDF_SELECTION_PATH = Path("config/pdf_pilot.csv")
 DEFAULT_PDF_DIRECTORY = Path("data/raw/pdfs")
 DEFAULT_PDF_EXTRACTION_ROOT = Path("data/interim/pdf_extraction")
 DEFAULT_PDF_SUMMARY_PATH = Path("data/qa/pdf_extraction_summary.json")
+
+DEFAULT_STRUCTURE_SOURCE_SUMMARY_PATH = DEFAULT_PDF_SUMMARY_PATH
+DEFAULT_STRUCTURE_OUTPUT_ROOT = Path("data/interim/structural_segmentation")
+DEFAULT_STRUCTURE_SUMMARY_PATH = Path("data/qa/structural_segmentation_summary.json")
 
 app = typer.Typer(
     name="deputies-distance",
@@ -86,6 +94,55 @@ def _display_pdf_batch_summary(
     console.print(f"Downloads reused: {summary['download_reused_count']}/{summary['record_count']}")
     console.print(
         f"Extractions reused: {summary['extraction_reused_count']}/{summary['record_count']}"
+    )
+
+
+def _display_structure_batch_summary(
+    summary: dict[str, Any],
+) -> None:
+    """Display one row per segmented transcript."""
+    table = Table(title="Structural Segmentation Batch")
+
+    table.add_column("Label")
+    table.add_column("Date")
+    table.add_column("Start")
+    table.add_column("End")
+    table.add_column("Method")
+    table.add_column(
+        "Included",
+        justify="right",
+    )
+    table.add_column(
+        "Words",
+        justify="right",
+    )
+    table.add_column(
+        "Zone mix",
+        justify="right",
+    )
+    table.add_column(
+        "Role mix",
+        justify="right",
+    )
+    table.add_column("Segmentation")
+
+    for record in summary["records"]:
+        table.add_row(
+            str(record["label"]),
+            str(record["session_date"]),
+            str(record["start_anchor"]),
+            str(record["end_anchor"] or "document end"),
+            str(record["end_method"]),
+            (f"{int(record['included_block_count']):,}/{int(record['block_count']):,}"),
+            f"{int(record['included_word_count']):,}",
+            str(len(record["mixed_structural_zone_page_numbers"])),
+            str(len(record["mixed_content_role_page_numbers"])),
+            ("reused" if record["segmentation_reused"] else "segmented"),
+        )
+
+    console.print(table)
+    console.print(
+        f"Segmentations reused: {summary['segmentation_reused_count']}/{summary['record_count']}"
     )
 
 
@@ -259,6 +316,52 @@ def extract_pdfs_command(
         raise typer.Exit(code=1) from error
 
     _display_pdf_batch_summary(summary)
+
+
+@app.command("segment-structure")
+def segment_structure_command(
+    pdf_summary_path: Annotated[
+        Path,
+        typer.Option(
+            "--pdf-summary",
+            help=("Path to the PDF extraction batch summary."),
+        ),
+    ] = DEFAULT_STRUCTURE_SOURCE_SUMMARY_PATH,
+    output_root: Annotated[
+        Path,
+        typer.Option(
+            "--output-dir",
+            help=("Directory for structural block and page outputs."),
+        ),
+    ] = DEFAULT_STRUCTURE_OUTPUT_ROOT,
+    summary_path: Annotated[
+        Path,
+        typer.Option(
+            "--summary",
+            help=("Path for the structural segmentation QA summary."),
+        ),
+    ] = DEFAULT_STRUCTURE_SUMMARY_PATH,
+    force: Annotated[
+        bool,
+        typer.Option(
+            "--force",
+            help=("Rebuild structural outputs even when the cache is valid."),
+        ),
+    ] = False,
+) -> None:
+    """Classify transcript structure for extracted PDFs."""
+    try:
+        summary = run_structure_batch(
+            pdf_summary_path=(pdf_summary_path),
+            output_root=output_root,
+            summary_path=summary_path,
+            force=force,
+        )
+    except StructureBatchError as error:
+        console.print(f"[bold red]Structural batch failed:[/bold red] {error}")
+        raise typer.Exit(code=1) from error
+
+    _display_structure_batch_summary(summary)
 
 
 def main() -> None:

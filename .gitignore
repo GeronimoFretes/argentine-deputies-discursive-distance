@@ -1,0 +1,52 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Generated and downloaded data
+data/raw/*
+data/interim/*
+data/processed/*
+data/qa/*
+
+# Preserve generated-data directories
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+!data/qa/.gitkeep
+
+# Temporary files and downloads
+tmp/
+temp/
+*.pdf
+*.log
+
+# Model artifacts and embeddings
+models/
+*.npy
+*.npz
+*.safetensors
+*.bin
+*.pt
+
+# Coverage
+.coverage
+htmlcov/
+
+# Editors
+.vscode/
+.idea/
+
+# Operating systems
+.DS_Store
+Thumbs.db

@@ -1,0 +1,26 @@
+[project]
+chamber = "deputies"
+country = "Argentina"
+candidate_start_date = "2008-01-01"
+latest_session_policy = "discover_from_official_source"
+
+[source]
+session_index_url = "https://www.diputados.gob.ar/secparl/dtaqui/diario-de-sesiones.html"
+
+
+[session_quality]
+minimum_word_match_coverage = 0.85
+minimum_legislators_per_side = 3
+minimum_words_per_side = 1000
+
+[year_quality]
+minimum_structural_pass_rate = 0.70
+minimum_median_word_match_coverage = 0.90
+minimum_consecutive_qualifying_years = 2
+
+[analysis]
+primary_government_label = "government_core"
+primary_opposition_label = "opposition_core"
+excluded_alignment_label = "ambiguous_or_independent"
+document_unit = "legislator_session"
+measurement_unit = "session"

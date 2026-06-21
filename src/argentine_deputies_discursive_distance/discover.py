@@ -78,6 +78,7 @@ class SourceSnapshot:
     content_type: str | None
     encoding: str
     retrieval_mode: str
+    input_path: Path | None = None
 
     @property
     def sha256(self) -> str:
@@ -129,6 +130,7 @@ def fetch_source_snapshot(source_url: str) -> SourceSnapshot:
         content_type=response.headers.get("content-type"),
         encoding=encoding,
         retrieval_mode="http",
+        input_path=None,
     )
 
 
@@ -137,16 +139,53 @@ def load_local_snapshot(
     html_path: Path,
     source_url: str,
 ) -> SourceSnapshot:
-    """Load a previously preserved source snapshot for reproducible parsing."""
+    """Load a frozen HTML snapshot and preserve its acquisition metadata."""
+    metadata_path = html_path.with_suffix(".metadata.json")
+
+    if not metadata_path.exists():
+        raise DiscoveryError(
+            f"Frozen HTML snapshots require a sibling metadata file: {metadata_path}"
+        )
+
+    content = html_path.read_bytes()
+
+    try:
+        metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise DiscoveryError(f"Could not read frozen snapshot metadata: {metadata_path}") from error
+
+    actual_sha256 = hashlib.sha256(content).hexdigest()
+    expected_sha256 = str(metadata.get("sha256", ""))
+
+    if actual_sha256 != expected_sha256:
+        raise DiscoveryError(
+            "Frozen HTML SHA-256 does not match its metadata: "
+            f"expected {expected_sha256}, got {actual_sha256}"
+        )
+
+    try:
+        retrieved_at = datetime.fromisoformat(str(metadata["retrieved_at_utc"]))
+    except (KeyError, TypeError, ValueError) as error:
+        raise DiscoveryError("Frozen snapshot metadata has no valid retrieved_at_utc.") from error
+
+    if retrieved_at.tzinfo is None:
+        raise DiscoveryError("Frozen snapshot retrieved_at_utc must include a timezone.")
+
+    http_status_value = metadata.get("http_status")
+    http_status = int(http_status_value) if http_status_value is not None else None
+
     return SourceSnapshot(
-        content=html_path.read_bytes(),
-        source_url=source_url,
-        final_url=source_url,
-        retrieved_at=datetime.now(UTC),
-        http_status=None,
-        content_type="text/html",
-        encoding="utf-8",
+        content=content,
+        source_url=str(metadata.get("source_url", source_url)),
+        final_url=str(metadata.get("final_url", source_url)),
+        retrieved_at=retrieved_at.astimezone(UTC),
+        http_status=http_status,
+        content_type=(
+            str(metadata["content_type"]) if metadata.get("content_type") is not None else None
+        ),
+        encoding=str(metadata.get("encoding", "utf-8")),
         retrieval_mode="local_html",
+        input_path=html_path,
     )
 
 
@@ -461,6 +500,9 @@ def _write_snapshot(
     html_path = source_dir / "diary_index.html"
     metadata_path = source_dir / "diary_index.metadata.json"
 
+    if snapshot.input_path is not None and snapshot.input_path.resolve() == html_path.resolve():
+        return
+
     html_path.write_bytes(snapshot.content)
 
     metadata: dict[str, Any] = {
@@ -539,6 +581,7 @@ def build_manifest_summary(
     return {
         "source_sha256": snapshot.sha256,
         "source_retrieved_at_utc": snapshot.retrieved_at.isoformat(),
+        "manifest_built_at_utc": datetime.now(UTC).isoformat(),
         "retrieval_mode": snapshot.retrieval_mode,
         "period_count": len({record.period for record in records}),
         "record_count": len(records),

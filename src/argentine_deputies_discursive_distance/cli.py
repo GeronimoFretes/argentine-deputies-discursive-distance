@@ -3,6 +3,7 @@
 from pathlib import Path
 from typing import Annotated, Any
 
+import httpx
 import typer
 from rich.console import Console
 from rich.table import Table
@@ -12,10 +13,21 @@ from argentine_deputies_discursive_distance.discover import (
     DiscoveryError,
     discover_sessions,
 )
+from argentine_deputies_discursive_distance.pdf_batch import (
+    PDF_USER_AGENT,
+    PdfBatchError,
+    run_pdf_batch,
+)
 
 DEFAULT_CONFIG_PATH = Path("config/pipeline.toml")
 DEFAULT_RAW_DIR = Path("data/raw")
 DEFAULT_QA_DIR = Path("data/qa")
+
+DEFAULT_PDF_MANIFEST_PATH = Path("data/raw/session_manifest.csv")
+DEFAULT_PDF_SELECTION_PATH = Path("config/pdf_pilot.csv")
+DEFAULT_PDF_DIRECTORY = Path("data/raw/pdfs")
+DEFAULT_PDF_EXTRACTION_ROOT = Path("data/interim/pdf_extraction")
+DEFAULT_PDF_SUMMARY_PATH = Path("data/qa/pdf_extraction_summary.json")
 
 app = typer.Typer(
     name="deputies-distance",
@@ -29,6 +41,52 @@ console = Console()
 @app.callback()
 def callback() -> None:
     """Build and analyze the Argentine Chamber of Deputies corpus."""
+
+
+def _display_pdf_batch_summary(
+    summary: dict[str, Any],
+) -> None:
+    """Display one row per processed PDF."""
+    table = Table(title="PDF Extraction Batch")
+
+    table.add_column("Label")
+    table.add_column("Date")
+    table.add_column(
+        "Pages",
+        justify="right",
+    )
+    table.add_column(
+        "Words",
+        justify="right",
+    )
+    table.add_column("Download")
+    table.add_column("Extraction")
+    table.add_column("Layouts")
+    table.add_column(
+        "Empty",
+        justify="right",
+    )
+
+    for record in summary["records"]:
+        layout_counts = record["layout_counts"]
+        layouts = ", ".join(f"{layout}:{count}" for layout, count in layout_counts.items())
+
+        table.add_row(
+            str(record["label"]),
+            str(record["session_date"]),
+            str(record["page_count"]),
+            f"{int(record['total_words']):,}",
+            ("reused" if record["download_reused"] else "downloaded"),
+            ("reused" if record["extraction_reused"] else "extracted"),
+            layouts,
+            str(len(record["empty_page_numbers"])),
+        )
+
+    console.print(table)
+    console.print(f"Downloads reused: {summary['download_reused_count']}/{summary['record_count']}")
+    console.print(
+        f"Extractions reused: {summary['extraction_reused_count']}/{summary['record_count']}"
+    )
 
 
 @app.command()
@@ -119,6 +177,88 @@ def discover_sessions_command(
         raise typer.Exit(code=1) from error
 
     _display_summary(summary)
+
+
+@app.command("extract-pdfs")
+def extract_pdfs_command(
+    manifest_path: Annotated[
+        Path,
+        typer.Option(
+            "--manifest",
+            help="Path to the discovered session manifest.",
+        ),
+    ] = DEFAULT_PDF_MANIFEST_PATH,
+    selection_path: Annotated[
+        Path,
+        typer.Option(
+            "--selection",
+            help="CSV containing selected source_record_id values.",
+        ),
+    ] = DEFAULT_PDF_SELECTION_PATH,
+    pdf_directory: Annotated[
+        Path,
+        typer.Option(
+            "--pdf-dir",
+            help="Directory for cached official PDFs.",
+        ),
+    ] = DEFAULT_PDF_DIRECTORY,
+    extraction_root: Annotated[
+        Path,
+        typer.Option(
+            "--output-dir",
+            help="Directory for page and block extraction outputs.",
+        ),
+    ] = DEFAULT_PDF_EXTRACTION_ROOT,
+    summary_path: Annotated[
+        Path,
+        typer.Option(
+            "--summary",
+            help="Path for the batch QA summary.",
+        ),
+    ] = DEFAULT_PDF_SUMMARY_PATH,
+    force_download: Annotated[
+        bool,
+        typer.Option(
+            "--force-download",
+            help="Download PDFs even when validated cache files exist.",
+        ),
+    ] = False,
+    force_extract: Annotated[
+        bool,
+        typer.Option(
+            "--force-extract",
+            help="Rebuild extraction outputs even when valid.",
+        ),
+    ] = False,
+) -> None:
+    """Download and extract a selected set of official session PDFs."""
+    timeout = httpx.Timeout(
+        timeout=180.0,
+        connect=30.0,
+    )
+
+    try:
+        with httpx.Client(
+            follow_redirects=True,
+            timeout=timeout,
+            headers={"User-Agent": PDF_USER_AGENT},
+        ) as client:
+            summary = run_pdf_batch(
+                client=client,
+                manifest_path=manifest_path,
+                selection_path=selection_path,
+                pdf_directory=pdf_directory,
+                extraction_root=extraction_root,
+                summary_path=summary_path,
+                force_download=force_download,
+                force_extract=force_extract,
+            )
+
+    except PdfBatchError as error:
+        console.print(f"[bold red]PDF batch failed:[/bold red] {error}")
+        raise typer.Exit(code=1) from error
+
+    _display_pdf_batch_summary(summary)
 
 
 def main() -> None:

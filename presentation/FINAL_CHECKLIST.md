@@ -14,9 +14,8 @@ humano; este documento no puede auto-aprobarse.
 - [ ] Fecha completada en la diapositiva 1
 - [ ] URL del repositorio en la diapositiva 10 confirmada:
       `https://github.com/GeronimoFretes/argentine-deputies-discursive-distance`
-- [ ] URL de las diapositivas completada en la diapositiva 10
-      (completar una vez que el deck esté subido)
-- [ ] Permisos de visualización configurados (solo lectura para el público)
+- [ ] URL de las diapositivas incluida en el correo de entrega
+- [ ] Permisos de visualización configurados en modo solo lectura
 
 ---
 
@@ -97,7 +96,8 @@ humano; este documento no puede auto-aprobarse.
       de planificadas (borde discontinuo / gris) en el diagrama del pipeline
 - [ ] La diapositiva 6 afirma explícitamente que los seis pilotos son heterogéneos
       pero no una muestra estadísticamente representativa
-- [ ] La diapositiva 7 incluye ambos gráficos de `presentation/assets/`
+- [ ] La diapositiva 7 principal incluye únicamente markers_vs_turns.png
+non_speech_spans.png está disponible como diapositiva de respaldo
 - [ ] La diapositiva 10 tiene la URL del repositorio
 - [ ] **No hay placeholder de URL de diapositivas** en la diapositiva 10
       (la URL se incluye en el correo de entrega, no en el deck)

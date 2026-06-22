@@ -26,7 +26,7 @@
 
 ---
 
-Duración total estimada: 11 minutos 30 segundos a 12 minutos.
+Duración total estimada: 11 minutos 55 segundos.
 
 ---
 

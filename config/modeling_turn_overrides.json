@@ -1,0 +1,59 @@
+{
+  "override_manifest_version": "1",
+  "required_pipeline_version": "2",
+  "required_content_classifier_version": "2",
+  "overrides": [
+    {
+      "source_record_id": "8517a4af91d960b3040d",
+      "turn_index": 615,
+      "session_date": "2017-12-21",
+      "expected_speech_word_count": 15415,
+      "action": "exclude_turn",
+      "reason": "residual_documentary_packet_attributed_to_chair"
+    },
+    {
+      "source_record_id": "7e675fdbeaf2ef265c5a",
+      "turn_index": 70,
+      "session_date": "2018-05-09",
+      "expected_speech_word_count": 13204,
+      "action": "exclude_turn",
+      "reason": "residual_documentary_packet_attributed_to_chair"
+    },
+    {
+      "source_record_id": "9ef518b1478325a8f039",
+      "turn_index": 349,
+      "session_date": "2012-11-28",
+      "expected_speech_word_count": 10311,
+      "action": "exclude_turn",
+      "reason": "residual_documentary_packet_attributed_to_chair"
+    },
+    {
+      "source_record_id": "e088189573cb15fdaf8d",
+      "turn_index": 755,
+      "session_date": "2021-10-26",
+      "expected_speech_word_count": 11973,
+      "action": "exclude_turn",
+      "reason": "short_intervention_followed_by_documentary_packet_below_minimum_turn_length"
+    },
+    {
+      "source_record_id": "97d30dbc0a21b640908f",
+      "turn_index": 335,
+      "session_date": "2009-10-28",
+      "expected_speech_word_count": 10547,
+      "action": "exclude_turn",
+      "reason": "false_speaker_marker_inside_documentary_report"
+    },
+    {
+      "source_record_id": "ada8d2921c49ab8592d6",
+      "turn_index": 15,
+      "session_date": "2015-03-01",
+      "expected_speech_word_count": 11946,
+      "action": "retain_from_anchor_and_relabel",
+      "start_anchor": "Y la verdad es que quiero comenzar dando",
+      "expected_anchor_occurrences": 1,
+      "speaker_family": "executive_official",
+      "normalized_label": "PRESIDENTA DE LA NACION",
+      "reason": "presidential_address_absorbed_into_preceding_chair_turn"
+    }
+  ]
+}

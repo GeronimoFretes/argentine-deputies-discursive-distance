@@ -260,12 +260,18 @@ Required top-level fields:
 
 ```text
 pipeline_version
+content_classifier_version
 processed_at_utc
 source_record_id
 source
 outputs
 statistics
 ```
+
+`content_classifier_version` identifies the turn-content classifier rules used to
+create `content_spans.jsonl`. A change to this version invalidates cached
+per-document speaker-turn outputs even when the pipeline schema version is
+unchanged.
 
 ### `source`
 
@@ -463,6 +469,7 @@ CSV output must use UTF-8 encoding and deterministic column order.
 The per-document output may be reused only when all of the following match:
 
 * pipeline version;
+* content classifier version;
 * source record identifier;
 * structural segmenter version;
 * structural summary SHA-256;
@@ -481,7 +488,9 @@ reused = true
 
 without modifying the persisted summary.
 
-Changing parsing behavior or a persisted schema requires incrementing the pipeline version.
+Changing the content classifier requires incrementing the content classifier
+version. Changing other parsing behavior or a persisted schema requires
+incrementing the pipeline version.
 
 ## Atomic-write policy
 

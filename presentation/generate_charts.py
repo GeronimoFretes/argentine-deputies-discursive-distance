@@ -46,6 +46,7 @@ TURN_MINUS_MARKER = [t - m for t, m in zip(PARSED_TURNS, EXPLICIT_MARKERS, stric
 # Escritor PNG mínimo (solo biblioteca estándar)
 # ---------------------------------------------------------------------------
 
+
 def _png_chunk(chunk_type: bytes, data: bytes) -> bytes:
     payload = chunk_type + data
     crc = zlib.crc32(payload) & 0xFFFFFFFF
@@ -95,9 +96,7 @@ class Canvas:
     def __init__(self, width: int, height: int, bg: tuple[int, int, int] = WHITE) -> None:
         self.w = width
         self.h = height
-        self.px: list[list[tuple[int, int, int]]] = [
-            [bg] * width for _ in range(height)
-        ]
+        self.px: list[list[tuple[int, int, int]]] = [[bg] * width for _ in range(height)]
 
     def set_px(self, x: int, y: int, c: tuple[int, int, int]) -> None:
         if 0 <= x < self.w and 0 <= y < self.h:
@@ -277,6 +276,7 @@ def _fmt(n: int) -> str:
 # Función auxiliar para un gráfico de barras agrupadas completo
 # ---------------------------------------------------------------------------
 
+
 def _draw_bar_chart(
     cv: Canvas,
     *,
@@ -386,6 +386,7 @@ def _draw_bar_chart(
 # Gráfico 1: marcadores vs. turnos
 # ---------------------------------------------------------------------------
 
+
 def make_markers_vs_turns_chart() -> None:
     W, H = 1600, 900
     cv = Canvas(W, H)
@@ -421,6 +422,7 @@ def make_markers_vs_turns_chart() -> None:
 # ---------------------------------------------------------------------------
 # Gráfico 2: dos paneles — acotaciones escénicas / notas editoriales
 # ---------------------------------------------------------------------------
+
 
 def _draw_single_bar_series(
     cv: Canvas,
@@ -496,16 +498,22 @@ def make_non_speech_spans_chart() -> None:
     # Título global
     cv.text_center(
         "CONTENIDO NO DISCURSIVO DETECTADO POR SESION PILOTO",
-        MID_X, 24, BLACK, scale=3,
+        MID_X,
+        24,
+        BLACK,
+        scale=3,
     )
     cv.text_center(
         "ESCALAS INDEPENDIENTES PARA FACILITAR LA LECTURA",
-        MID_X, 64, SUBTITLE_GRAY, scale=2,
+        MID_X,
+        64,
+        SUBTITLE_GRAY,
+        scale=2,
     )
 
     LEFT = 140
     RIGHT = 1540
-    PANEL_SEP = 36       # espacio entre paneles
+    PANEL_SEP = 36  # espacio entre paneles
     TOP_PANEL_TOP = 108
     TOP_PANEL_BOTTOM = 430
     BOT_PANEL_TOP = TOP_PANEL_BOTTOM + PANEL_SEP

@@ -23,6 +23,36 @@ def test_finds_standard_marker_with_exact_offsets() -> None:
     assert marker.position == (MarkerPosition.BLOCK_START)
 
 
+def test_classifies_national_president_as_executive_official() -> None:
+    text = "Sr. Presidente de la Naci\u00f3n.- Mensaje de apertura."
+
+    markers = find_speaker_markers(text)
+
+    assert len(markers) == 1
+    assert markers[0].normalized_label == "PRESIDENTE DE LA NACION"
+    assert markers[0].family == SpeakerLabelFamily.EXECUTIVE_OFFICIAL
+
+
+def test_classifies_national_presidenta_as_executive_official() -> None:
+    text = "Sra. Presidenta de la Naci\u00f3n.- Mensaje de apertura."
+
+    markers = find_speaker_markers(text)
+
+    assert len(markers) == 1
+    assert markers[0].normalized_label == "PRESIDENTA DE LA NACION"
+    assert markers[0].family == SpeakerLabelFamily.EXECUTIVE_OFFICIAL
+
+
+def test_named_chamber_president_remains_chair() -> None:
+    text = "Sr. Presidente (Menem).- Queda abierta la sesi\u00f3n."
+
+    markers = find_speaker_markers(text)
+
+    assert len(markers) == 1
+    assert markers[0].normalized_label == "PRESIDENTE (MENEM)"
+    assert markers[0].family == SpeakerLabelFamily.CHAIR
+
+
 def test_uses_terminal_explicit_marker_after_preamble() -> None:
     text = (
         "Sr. Presidente (Fellner). – "

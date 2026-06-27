@@ -45,6 +45,90 @@ def formal_order_document(
     return f"(Orden del Día N° 25)\nI Dictamen de mayoría\nHonorable Cámara:\n{body}"
 
 
+def repeated_body(
+    *,
+    body_words: int = 220,
+) -> str:
+    return " ".join(f"contenido{index}" for index in range(body_words))
+
+
+def formal_legislative_packet(
+    *,
+    body_words: int = 220,
+) -> str:
+    return (
+        "DICTAMEN DE MAYORIA\n"
+        "HONORABLE CAMARA:\n"
+        "PROYECTO DE LEY\n"
+        "EL SENADO Y CAMARA DE DIPUTADOS\n"
+        f"{repeated_body(body_words=body_words)}"
+    )
+
+
+def formal_resolution_packet(
+    *,
+    body_words: int = 220,
+) -> str:
+    return (
+        "PROYECTO DE RESOLUCION\n"
+        "LA CAMARA DE DIPUTADOS DE LA NACION\n"
+        "RESUELVE:\n"
+        f"{repeated_body(body_words=body_words)}"
+    )
+
+
+def formal_judicial_packet(
+    *,
+    body_words: int = 220,
+) -> str:
+    return (
+        f"PODER JUDICIAL DE LA NACION\nY VISTOS:\nRESUELVE:\n{repeated_body(body_words=body_words)}"
+    )
+
+
+def intro_packet(
+    *,
+    body_words: int = 220,
+) -> str:
+    return f"I\nDictamen de mayoria\nHonorable Camara:\n{repeated_body(body_words=body_words)}"
+
+
+def assert_fully_spoken(turn) -> None:
+    result = classify_speaker_turn_content(turn)
+
+    assert result.documentary_boundary is None
+    assert result.speech_word_count == turn.word_count
+    assert result.documentary_word_count == 0
+    assert all(span.content_kind == TurnContentKind.SPOKEN_TEXT for span in result.spans)
+    assert_exact_segment_reconstruction(turn, result)
+
+
+def assert_exact_segment_reconstruction(turn, result) -> None:
+    for segment in turn.segments:
+        spans = [
+            span
+            for span in result.spans
+            if (
+                span.page_number == segment.page_number
+                and span.reading_order == segment.reading_order
+                and segment.start <= span.start
+                and span.end <= segment.end
+            )
+        ]
+
+        assert spans
+        assert spans[0].start == segment.start
+        assert spans[-1].end == segment.end
+
+        cursor = segment.start
+
+        for span in spans:
+            assert span.start == cursor
+            cursor = span.end
+
+        assert "".join(span.text for span in spans) == segment.text
+
+
 def test_classifies_normal_turn_as_spoken_text() -> None:
     turn = make_turn("Sr. Alpha. – Esta es una intervención.")
 
@@ -73,6 +157,74 @@ def test_accepts_order_of_day_with_formal_body() -> None:
     ]
     assert result.spans[0].text.strip() == "Corresponde considerar el asunto."
     assert result.spans[1].text.startswith("(Orden del Día N° 25)")
+
+
+def test_chair_intro_followed_by_formal_legislative_bundle() -> None:
+    turn = make_turn(
+        "Sr. Presidente.- Corresponde considerar el asunto.\n" + formal_legislative_packet()
+    )
+
+    result = classify_speaker_turn_content(turn)
+
+    assert result.documentary_boundary is not None
+    assert result.documentary_boundary.cue == (DocumentaryCue.FORMAL_AGENDA_DOCUMENT_BUNDLE)
+    assert [span.content_kind for span in result.spans] == [
+        TurnContentKind.SPOKEN_TEXT,
+        TurnContentKind.DOCUMENTARY_INSERT,
+    ]
+    assert result.spans[0].text.strip() == "Corresponde considerar el asunto."
+    assert result.spans[1].text.startswith("DICTAMEN DE MAYORIA")
+    assert_exact_segment_reconstruction(turn, result)
+
+
+def test_named_legislator_short_intro_followed_by_order_of_day_packet() -> None:
+    turn = make_turn("Sr. Alpha.- Solicito mi abstencion.\n" + formal_order_document())
+
+    result = classify_speaker_turn_content(turn)
+
+    assert result.documentary_boundary is not None
+    assert result.documentary_boundary.cue == DocumentaryCue.ORDER_OF_DAY
+    assert result.spans[0].text.strip() == "Solicito mi abstencion."
+    assert result.spans[1].content_kind == TurnContentKind.DOCUMENTARY_INSERT
+    assert_exact_segment_reconstruction(turn, result)
+
+
+def test_named_legislator_short_intro_followed_by_generic_committee_report() -> None:
+    turn = make_turn("Sr. Alpha.- Solicito mi abstencion.\n" + formal_legislative_packet())
+
+    result = classify_speaker_turn_content(turn)
+
+    assert result.documentary_boundary is not None
+    assert result.documentary_boundary.cue == (DocumentaryCue.FORMAL_AGENDA_DOCUMENT_BUNDLE)
+    assert result.spans[0].text.strip() == "Solicito mi abstencion."
+    assert result.spans[1].text.startswith("DICTAMEN DE MAYORIA")
+    assert_exact_segment_reconstruction(turn, result)
+
+
+def test_secretary_dice_asi_followed_by_formal_resolution() -> None:
+    turn = make_turn("Sr. Secretario.- Dice asi:\n" + formal_resolution_packet())
+
+    result = classify_speaker_turn_content(turn)
+
+    assert result.documentary_boundary is not None
+    assert result.documentary_boundary.cue == (DocumentaryCue.FORMAL_AGENDA_DOCUMENT_BUNDLE)
+    assert result.spans[0].text.strip() == "Dice asi:"
+    assert result.spans[1].text.startswith("PROYECTO DE RESOLUCION")
+    assert_exact_segment_reconstruction(turn, result)
+
+
+def test_chair_intro_followed_by_formal_judicial_record_bundle() -> None:
+    turn = make_turn("Sr. Presidente.- Dese cuenta del expediente.\n" + formal_judicial_packet())
+
+    result = classify_speaker_turn_content(turn)
+
+    assert result.documentary_boundary is not None
+    assert result.documentary_boundary.cue == (
+        DocumentaryCue.FORMAL_JUDICIAL_ELECTORAL_RECORD_BUNDLE
+    )
+    assert result.spans[0].text.strip() == "Dese cuenta del expediente."
+    assert result.spans[1].text.startswith("PODER JUDICIAL DE LA NACION")
+    assert_exact_segment_reconstruction(turn, result)
 
 
 def test_rejects_short_order_of_day_reference() -> None:
@@ -133,12 +285,166 @@ def test_accepts_secretary_expediente_sequence() -> None:
     assert boundary.cue == (DocumentaryCue.SECRETARY_EXPEDIENTE)
 
 
-def test_never_accepts_named_legislator_document_cue() -> None:
+def test_accepts_named_legislator_document_cue_after_short_prefix() -> None:
     turn = make_turn(
         "Sr. Alpha. – Quiero referirme al asunto.\n" + formal_order_document(body_words=300)
     )
 
-    assert find_documentary_boundary(turn) is None
+    assert find_documentary_boundary(turn) is not None
+
+
+def test_wrapped_lowercase_dictamen_de_mayoria_remains_spoken() -> None:
+    turn = make_turn(
+        "Sr. Cacace.- escuchamos atentamente el informe que se hizo sobre el\n"
+        "dictamen de mayor\u00eda.\n"
+        "En respuesta a ese informe seguimos tratando el proyecto, el anexo y la ley. "
+        f"{repeated_body(body_words=260)}"
+    )
+
+    assert_fully_spoken(turn)
+
+
+def test_wrapped_lowercase_dictamen_final_remains_spoken() -> None:
+    turn = make_turn(
+        "Sr. Tunessi.- cuando se vuelve a emitir el\n"
+        "dictamen final de unificacion de los codigos, en este debate "
+        "tambien se menciona un proyecto, un informe, un anexo y una ley. "
+        f"{repeated_body(body_words=260)}"
+    )
+
+    assert_fully_spoken(turn)
+
+
+def test_wrapped_lowercase_fundamentos_remain_spoken() -> None:
+    turn = make_turn(
+        "Sr. Pais.- el eje es el que planteaban en sus\n"
+        "fundamentos los proyectos de la oposicion, junto con cada informe, "
+        "anexo y ley citada en el debate. "
+        f"{repeated_body(body_words=260)}"
+    )
+
+    assert_fully_spoken(turn)
+
+
+def test_wrapped_lowercase_dictamen_declarando_remains_spoken() -> None:
+    turn = make_turn(
+        "Sr. Biella Calvet.- elaboramos un\n"
+        "dictamen declarando la emergencia sanitaria mientras revisabamos "
+        "el proyecto, el informe, el anexo y la ley. "
+        f"{repeated_body(body_words=260)}"
+    )
+
+    assert_fully_spoken(turn)
+
+
+def test_chair_project_description_before_packet_remains_spoken() -> None:
+    turn = make_turn(
+        "Sr. Presidente.- Corresponde considerar los dictamenes recaidos en el\n"
+        "proyecto de ley por el que se crea el Programa Nacional, contenido en el "
+        "Orden del Dia N 186.\n" + intro_packet()
+    )
+
+    result = classify_speaker_turn_content(turn)
+    speech_text = "".join(span.text for span in result.spans if span.include_in_speech)
+
+    assert result.documentary_boundary is not None
+    assert "proyecto de ley por el que se crea el Programa Nacional" in speech_text
+    assert "Orden del Dia N 186." in speech_text
+    assert result.spans[1].text.startswith("I\nDictamen de mayoria")
+    assert_exact_segment_reconstruction(turn, result)
+
+
+def test_named_vote_sentence_before_packet_remains_spoken() -> None:
+    turn = make_turn(
+        "Sr. Acuna.- Nuestro bloque va a votar por la negativa el\n"
+        "proyecto de declaracion contenido en el expediente mencionado y en el "
+        "Orden del Dia N 45.\n" + intro_packet()
+    )
+
+    result = classify_speaker_turn_content(turn)
+    speech_text = "".join(span.text for span in result.spans if span.include_in_speech)
+
+    assert result.documentary_boundary is not None
+    assert "va a votar por la negativa el\nproyecto de declaracion" in speech_text
+    assert "Orden del Dia N 45." in speech_text
+    assert result.spans[1].text.startswith("I\nDictamen de mayoria")
+    assert_exact_segment_reconstruction(turn, result)
+
+
+def test_long_uppercase_title_rewinds_to_first_title_line() -> None:
+    title = "\n".join(f"TITULO FORMAL EXTENSO LINEA {index}" for index in range(1, 13))
+    turn = make_turn(
+        "Sr. Presidente.- Corresponde considerar el asunto.\n"
+        f"{title}\n"
+        "PROYECTO DE LEY\n"
+        "HONORABLE CAMARA:\n"
+        f"{repeated_body(body_words=220)}"
+    )
+
+    result = classify_speaker_turn_content(turn)
+
+    assert result.documentary_boundary is not None
+    assert result.spans[0].text.strip() == "Corresponde considerar el asunto."
+    assert result.spans[1].text.startswith("TITULO FORMAL EXTENSO LINEA 1")
+    assert "PROYECTO DE LEY" in result.spans[1].text
+    assert_exact_segment_reconstruction(turn, result)
+
+
+def test_ordinary_legislator_speech_mentioning_project_remains_spoken() -> None:
+    body = " ".join("argumento" for _ in range(260))
+    turn = make_turn(
+        "Sr. Alpha.- Este proyecto de ley debe analizarse junto con "
+        f"cada articulo, anexo e informe. {body}"
+    )
+
+    result = classify_speaker_turn_content(turn)
+
+    assert result.documentary_boundary is None
+    assert [span.content_kind for span in result.spans] == [TurnContentKind.SPOKEN_TEXT]
+    assert result.documentary_word_count == 0
+
+
+def test_long_executive_official_address_with_formal_words_remains_spoken() -> None:
+    turn = make_turn(
+        "Sr. Jefe de Gabinete de Ministros.- "
+        "Informo sobre leyes, proyectos, articulos y reportes.\n"
+        "PROYECTO DE LEY\n"
+        "INFORME\n"
+        "ANEXO\n"
+        f"{repeated_body(body_words=260)}"
+    )
+
+    result = classify_speaker_turn_content(turn)
+
+    assert result.documentary_boundary is None
+    assert [span.content_kind for span in result.spans] == [TurnContentKind.SPOKEN_TEXT]
+    assert result.documentary_word_count == 0
+
+
+def test_presidential_opening_address_remains_spoken() -> None:
+    turn = make_turn(
+        "Sr. Presidente de la Naci\u00f3n.- "
+        "Vengo a inaugurar el periodo de sesiones ordinarias.\n"
+        "PROYECTO DE LEY\n"
+        "INFORME\n"
+        f"{repeated_body(body_words=260)}"
+    )
+
+    result = classify_speaker_turn_content(turn)
+
+    assert result.documentary_boundary is None
+    assert [span.content_kind for span in result.spans] == [TurnContentKind.SPOKEN_TEXT]
+    assert result.documentary_word_count == 0
+
+
+def test_named_speaker_long_prefix_rejects_generic_formal_bundle() -> None:
+    prefix = " ".join(f"palabra{index}" for index in range(251))
+    turn = make_turn("Sr. Alpha.- " + prefix + "\n" + formal_legislative_packet())
+
+    result = classify_speaker_turn_content(turn)
+
+    assert result.documentary_boundary is None
+    assert [span.content_kind for span in result.spans] == [TurnContentKind.SPOKEN_TEXT]
 
 
 def test_splits_multiblock_turn_losslessly() -> None:
@@ -168,6 +474,8 @@ def test_splits_multiblock_turn_losslessly() -> None:
         assert reconstructed == (segment.text)
         assert spans[0].start == (segment.start)
         assert spans[-1].end == (segment.end)
+
+    assert_exact_segment_reconstruction(turn, result)
 
 
 def test_unattributed_text_is_preserved_but_excluded() -> None:

@@ -7,9 +7,11 @@ import pytest
 from argentine_deputies_discursive_distance import speaker_turn_pipeline
 from argentine_deputies_discursive_distance.pdf_pipeline import sha256_file
 from argentine_deputies_discursive_distance.speaker_turn_pipeline import (
+    SPEAKER_TURN_PIPELINE_VERSION,
     SpeakerTurnPipelineError,
     process_speaker_turn_document,
 )
+from argentine_deputies_discursive_distance.turn_content import TURN_CONTENT_CLASSIFIER_VERSION
 
 
 def write_jsonl(path: Path, records: list[dict[str, Any]]) -> None:
@@ -129,6 +131,8 @@ def test_writes_all_outputs_and_reconciled_statistics(tmp_path: Path) -> None:
     returned_manifest.pop("reused")
 
     assert persisted_manifest == returned_manifest
+    assert persisted_manifest["pipeline_version"] == SPEAKER_TURN_PIPELINE_VERSION
+    assert persisted_manifest["content_classifier_version"] == TURN_CONTENT_CLASSIFIER_VERSION
     assert len(turns) == 2
     assert len(segments) == 3
     assert len(spans) == 4
@@ -252,6 +256,32 @@ def test_reuses_valid_outputs_without_changing_bytes_or_modification_times(
     assert second["reused"] is True
     assert before == {path: (path.read_bytes(), path.stat().st_mtime_ns) for path in paths}
     assert "reused" not in json.loads(paths[-1].read_text(encoding="utf-8"))
+
+
+def test_rebuilds_when_content_classifier_version_changes(tmp_path: Path) -> None:
+    structure_path, _ = build_structure_bundle(tmp_path)
+    output_root = tmp_path / "speaker_turns"
+    process_speaker_turn_document(
+        structure_path=structure_path,
+        output_root=output_root,
+    )
+    manifest_path = output_paths(output_root)[-1]
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["content_classifier_version"] = "1"
+    manifest_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+    result = process_speaker_turn_document(
+        structure_path=structure_path,
+        output_root=output_root,
+    )
+    persisted_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+
+    assert result["reused"] is False
+    assert persisted_manifest["content_classifier_version"] == TURN_CONTENT_CLASSIFIER_VERSION
+    assert persisted_manifest["pipeline_version"] == SPEAKER_TURN_PIPELINE_VERSION
 
 
 def test_rebuilds_a_corrupted_generated_output(tmp_path: Path) -> None:

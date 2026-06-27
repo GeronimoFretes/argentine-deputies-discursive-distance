@@ -136,6 +136,12 @@ def classify_speaker_label(
     normalized_label: str,
 ) -> SpeakerLabelFamily:
     """Assign a conservative family from the printed label."""
+    if normalized_label in {
+        "PRESIDENTE DE LA NACION",
+        "PRESIDENTA DE LA NACION",
+    }:
+        return SpeakerLabelFamily.EXECUTIVE_OFFICIAL
+
     if re.search(
         r"\b"
         r"(?:PRESIDENTE|PRESIDENTA|"

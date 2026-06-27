@@ -21,6 +21,7 @@ from .speaker_turns import (
     parse_speaker_turns,
 )
 from .turn_content import (
+    TURN_CONTENT_CLASSIFIER_VERSION,
     DocumentaryBoundary,
     TurnContentError,
     TurnContentKind,
@@ -29,7 +30,7 @@ from .turn_content import (
     classify_speaker_turn_content,
 )
 
-SPEAKER_TURN_PIPELINE_VERSION = "1"
+SPEAKER_TURN_PIPELINE_VERSION = "2"
 
 _COUNT_STATISTIC_FIELDS = (
     "turn_count",
@@ -919,6 +920,9 @@ def _reusable_manifest(
     if manifest.get("pipeline_version") != SPEAKER_TURN_PIPELINE_VERSION:
         return None
 
+    if manifest.get("content_classifier_version") != TURN_CONTENT_CLASSIFIER_VERSION:
+        return None
+
     if manifest.get("source_record_id") != source.source_record_id:
         return None
 
@@ -1108,6 +1112,7 @@ def _write_outputs(
             "content_spans_size_bytes": _part_path(content_spans_path).stat().st_size,
         }
         manifest: dict[str, Any] = {
+            "content_classifier_version": TURN_CONTENT_CLASSIFIER_VERSION,
             "pipeline_version": SPEAKER_TURN_PIPELINE_VERSION,
             "processed_at_utc": datetime.now(UTC).isoformat(),
             "source_record_id": source.source_record_id,

@@ -14,6 +14,8 @@ from .speaker_turns import (
     SpeakerTurnSegment,
 )
 
+TURN_CONTENT_CLASSIFIER_VERSION = "2"
+
 
 class TurnContentError(RuntimeError):
     """Raised when turn content cannot be classified safely."""
@@ -35,6 +37,8 @@ class DocumentaryCue(StrEnum):
     ORDER_OF_DAY = "order_of_day_heading"
     CODED_PROJECT = "coded_project_heading"
     SECRETARY_EXPEDIENTE = "secretary_expediente_before_project"
+    FORMAL_AGENDA_DOCUMENT_BUNDLE = "formal_agenda_document_bundle"
+    FORMAL_JUDICIAL_ELECTORAL_RECORD_BUNDLE = "formal_judicial_electoral_record_bundle"
 
 
 @dataclass(frozen=True, slots=True)
@@ -136,13 +140,42 @@ class _NonSpeechCandidate:
     classification_confidence: float
 
 
+@dataclass(frozen=True, slots=True)
+class _DocumentaryCandidate:
+    """One candidate documentary transition inside joined turn text."""
+
+    start: int
+    cue: DocumentaryCue
+    matched_text: str
+    priority: int
+
+
+@dataclass(frozen=True, slots=True)
+class _FormalSignal:
+    """One line-anchored formal-document signal."""
+
+    cue: DocumentaryCue
+    key: str
+    anchor_capable: bool
+
+
 MIN_DOCUMENTARY_WORDS = 200
-MAX_FORMAL_BODY_LOOKAHEAD = 5000
+MAX_FORMAL_BODY_LOOKAHEAD = 6000
 MAX_EXPEDIENTE_TO_PROJECT_CHARACTERS = 3000
+MAX_NAMED_DOCUMENTARY_PREFIX_WORDS = 250
+MAX_FORMAL_BUNDLE_REWIND_LINES = 18
+MAX_FORMAL_BUNDLE_REWIND_CHARACTERS = 1800
 
 ELIGIBLE_DOCUMENTARY_FAMILIES = {
     SpeakerLabelFamily.CHAIR,
     SpeakerLabelFamily.CHAMBER_SECRETARY,
+    SpeakerLabelFamily.NAMED_OR_ROLE_UNSPECIFIED,
+    SpeakerLabelFamily.COLLECTIVE_OR_ANONYMOUS,
+}
+
+SHORT_PREFIX_DOCUMENTARY_FAMILIES = {
+    SpeakerLabelFamily.NAMED_OR_ROLE_UNSPECIFIED,
+    SpeakerLabelFamily.COLLECTIVE_OR_ANONYMOUS,
 }
 
 ORDER_OF_DAY_PATTERN = re.compile(
@@ -201,6 +234,54 @@ PROJECT_BODY_PATTERN = re.compile(
     r")"
     r"\b",
     flags=re.IGNORECASE,
+)
+
+FORMAL_AGENDA_ANCHOR_PREFIXES: tuple[tuple[str, str], ...] = (
+    ("order_of_day", "ORDEN DEL DIA"),
+    ("honorable_camara", "HONORABLE CAMARA:"),
+    ("honorable_congreso", "HONORABLE CONGRESO:"),
+    ("proyecto_ley", "PROYECTO DE LEY"),
+    ("proyecto_resolucion", "PROYECTO DE RESOLUCION"),
+    ("proyecto_declaracion", "PROYECTO DE DECLARACION"),
+    ("senado_camara", "EL SENADO Y CAMARA DE DIPUTADOS"),
+    ("camara_nacion", "LA CAMARA DE DIPUTADOS DE LA NACION"),
+)
+
+FORMAL_AGENDA_SUPPORT_PREFIXES: tuple[tuple[str, str], ...] = (
+    ("dictamen", "DICTAMEN"),
+    ("fundamentos", "FUNDAMENTOS"),
+    ("informe", "INFORME"),
+    ("antecedente", "ANTECEDENTE"),
+    ("antecedentes", "ANTECEDENTES"),
+    ("anexo", "ANEXO"),
+    ("sala_comisiones", "SALA DE LAS COMISIONES"),
+)
+
+FORMAL_RECORD_ANCHOR_PREFIXES: tuple[tuple[str, str], ...] = (
+    ("poder_judicial", "PODER JUDICIAL DE LA NACION"),
+    ("juzgado_federal", "JUZGADO FEDERAL"),
+    ("junta_electoral", "JUNTA ELECTORAL"),
+)
+
+FORMAL_RECORD_SUPPORT_PREFIXES: tuple[tuple[str, str], ...] = (
+    ("y_vistos", "Y VISTOS:"),
+    ("y_considerando", "Y CONSIDERANDO"),
+    ("resuelve", "RESUELVE:"),
+)
+
+SPOKEN_PREFIX_REWIND_STARTS = (
+    "CORRESPONDE ",
+    "DICE ",
+    "SOLICITO ",
+    "PIDO ",
+    "VOY ",
+    "VAMOS ",
+    "SE VA ",
+    "SE VOTARA ",
+    "TIENE ",
+    "CONTINUA ",
+    "CONTINUE ",
+    "QUEDA ",
 )
 
 PARENTHETICAL_PATTERN = re.compile(
@@ -348,6 +429,267 @@ def _source_for_turn_offset(
     )
 
 
+def _strip_formal_line_prefix(value: str) -> str:
+    """Remove audited heading prefixes before line-anchored cue checks."""
+    return re.sub(
+        r"^(?:(?:[IVXLCDM]+|\d+)[.)]?[ \t]+)",
+        "",
+        value.strip(),
+    )
+
+
+def _line_starts_with_signal(
+    *,
+    value: str,
+    prefix: str,
+) -> bool:
+    """Return whether a folded line begins with one formal signal."""
+    if not value.startswith(prefix):
+        return False
+
+    if len(value) == len(prefix):
+        return True
+
+    if prefix.endswith(":"):
+        return True
+
+    next_character = value[len(prefix)]
+    return not (next_character.isalnum() or next_character == "_")
+
+
+def _first_formal_character(
+    value: str,
+) -> str:
+    """Return the first visible character after audited heading prefixes."""
+    stripped = _strip_formal_line_prefix(value)
+
+    return stripped[:1]
+
+
+def _has_formal_line_surface(
+    value: str,
+) -> bool:
+    """Return whether a signal line looks like a formal heading, not wrapped prose."""
+    first_character = _first_formal_character(value.strip())
+
+    return bool(first_character) and not first_character.islower()
+
+
+def _formal_signal_for_line(
+    value: str,
+) -> _FormalSignal | None:
+    """Return a formal-document signal when one starts a physical line."""
+    folded = _strip_formal_line_prefix(_fold_non_speech_text(value))
+
+    for key, prefix in FORMAL_AGENDA_ANCHOR_PREFIXES:
+        if _line_starts_with_signal(value=folded, prefix=prefix):
+            return _FormalSignal(
+                cue=(DocumentaryCue.FORMAL_AGENDA_DOCUMENT_BUNDLE),
+                key=key,
+                anchor_capable=True,
+            )
+
+    for key, prefix in FORMAL_AGENDA_SUPPORT_PREFIXES:
+        if _line_starts_with_signal(value=folded, prefix=prefix):
+            return _FormalSignal(
+                cue=(DocumentaryCue.FORMAL_AGENDA_DOCUMENT_BUNDLE),
+                key=key,
+                anchor_capable=False,
+            )
+
+    for key, prefix in FORMAL_RECORD_ANCHOR_PREFIXES:
+        if _line_starts_with_signal(value=folded, prefix=prefix):
+            return _FormalSignal(
+                cue=(DocumentaryCue.FORMAL_JUDICIAL_ELECTORAL_RECORD_BUNDLE),
+                key=key,
+                anchor_capable=True,
+            )
+
+    for key, prefix in FORMAL_RECORD_SUPPORT_PREFIXES:
+        if _line_starts_with_signal(value=folded, prefix=prefix):
+            return _FormalSignal(
+                cue=(DocumentaryCue.FORMAL_JUDICIAL_ELECTORAL_RECORD_BUNDLE),
+                key=key,
+                anchor_capable=False,
+            )
+
+    return None
+
+
+def _is_uppercase_heading_line(
+    value: str,
+) -> bool:
+    """Return whether a line is safe to treat as packet heading material."""
+    stripped = value.strip()
+
+    if not stripped or len(stripped) > 140:
+        return False
+
+    if any(character in stripped for character in ".?!;:"):
+        return False
+
+    if any(character.islower() for character in stripped):
+        return False
+
+    if not any(character.isalpha() for character in stripped):
+        return False
+
+    folded = _fold_non_speech_text(stripped)
+
+    return not folded.startswith(SPOKEN_PREFIX_REWIND_STARTS)
+
+
+def _is_rewind_heading_line(
+    value: str,
+) -> bool:
+    """Return whether a preceding line may belong to a formal packet heading."""
+    folded = _fold_non_speech_text(value)
+
+    if not folded:
+        return False
+
+    if ORDER_OF_DAY_PATTERN.fullmatch(value.strip()):
+        return True
+
+    if CODED_PROJECT_PATTERN.match(value.strip()):
+        return True
+
+    if re.fullmatch(r"[IVXLCDM]+[.)]?", folded):
+        return True
+
+    signal = _formal_signal_for_line(value)
+
+    if signal is not None and _has_formal_line_surface(value):
+        return True
+
+    return _is_uppercase_heading_line(value)
+
+
+def _rewound_formal_bundle_start(
+    *,
+    lines: tuple[_PhysicalLine, ...],
+    line_index: int,
+) -> tuple[int, int]:
+    """Rewind over bounded immediately preceding formal heading material."""
+    start = lines[line_index].start
+    start_line_index = line_index
+    consumed_lines = 0
+
+    while start_line_index > 0 and consumed_lines < MAX_FORMAL_BUNDLE_REWIND_LINES:
+        previous = lines[start_line_index - 1]
+
+        if start - previous.start > MAX_FORMAL_BUNDLE_REWIND_CHARACTERS:
+            break
+
+        if not previous.text.strip():
+            if start_line_index < 2 or not _is_rewind_heading_line(
+                lines[start_line_index - 2].text
+            ):
+                break
+
+            start = previous.start
+            start_line_index -= 1
+            consumed_lines += 1
+            continue
+
+        if not _is_rewind_heading_line(previous.text):
+            break
+
+        start = previous.start
+        start_line_index -= 1
+        consumed_lines += 1
+
+    return start, start_line_index
+
+
+def _has_formal_bundle_body(
+    *,
+    text: str,
+    candidate_start: int,
+    cue: DocumentaryCue,
+) -> bool:
+    """Return whether a generic formal bundle has multiple compatible signals."""
+    if len(text[candidate_start:].split()) < MIN_DOCUMENTARY_WORDS:
+        return False
+
+    lookahead_end = candidate_start + MAX_FORMAL_BODY_LOOKAHEAD
+    signal_keys: set[str] = set()
+
+    for line in _physical_lines(text):
+        if line.visible_end <= candidate_start:
+            continue
+
+        if line.start >= lookahead_end:
+            break
+
+        if not _has_formal_line_surface(line.text):
+            continue
+
+        signal = _formal_signal_for_line(line.text)
+
+        if signal is None or signal.cue != cue:
+            continue
+
+        signal_keys.add(signal.key)
+
+        if len(signal_keys) >= 2:
+            return True
+
+    return False
+
+
+def _formal_bundle_candidates(
+    text: str,
+) -> tuple[_DocumentaryCandidate, ...]:
+    """Return high-confidence generic formal-document bundle candidates."""
+    candidates: list[_DocumentaryCandidate] = []
+    lines = _physical_lines(text)
+
+    for line_index, line in enumerate(lines):
+        signal = _formal_signal_for_line(line.text)
+
+        if signal is None or not signal.anchor_capable:
+            continue
+
+        if not _has_formal_line_surface(line.text):
+            continue
+
+        start, _ = _rewound_formal_bundle_start(
+            lines=lines,
+            line_index=line_index,
+        )
+
+        if not _has_formal_bundle_body(
+            text=text,
+            candidate_start=start,
+            cue=signal.cue,
+        ):
+            continue
+
+        candidates.append(
+            _DocumentaryCandidate(
+                start=start,
+                cue=signal.cue,
+                matched_text=line.text.strip(),
+                priority=1,
+            )
+        )
+
+    return tuple(candidates)
+
+
+def _allows_documentary_prefix(
+    *,
+    turn: SpeakerTurn,
+    start: int,
+) -> bool:
+    """Return whether a candidate begins early enough for the speaker family."""
+    if turn.speaker_family not in SHORT_PREFIX_DOCUMENTARY_FAMILIES:
+        return True
+
+    return len(turn.text[:start].split()) <= MAX_NAMED_DOCUMENTARY_PREFIX_WORDS
+
+
 def _has_formal_body(
     *,
     text: str,
@@ -378,6 +720,16 @@ def _has_formal_body(
 
         return PROJECT_BODY_PATTERN.search(lookahead) is not None
 
+    if cue in {
+        DocumentaryCue.FORMAL_AGENDA_DOCUMENT_BUNDLE,
+        DocumentaryCue.FORMAL_JUDICIAL_ELECTORAL_RECORD_BUNDLE,
+    }:
+        return _has_formal_bundle_body(
+            text=text,
+            candidate_start=candidate_start,
+            cue=cue,
+        )
+
     return False
 
 
@@ -390,29 +742,25 @@ def find_documentary_boundary(
 
     text = turn.text
 
-    candidates: list[
-        tuple[
-            int,
-            DocumentaryCue,
-            str,
-        ]
-    ] = []
+    candidates: list[_DocumentaryCandidate] = []
 
     for match in ORDER_OF_DAY_PATTERN.finditer(text):
         candidates.append(
-            (
-                match.start(),
-                DocumentaryCue.ORDER_OF_DAY,
-                match.group(0),
+            _DocumentaryCandidate(
+                start=match.start(),
+                cue=(DocumentaryCue.ORDER_OF_DAY),
+                matched_text=match.group(0),
+                priority=0,
             )
         )
 
     for match in CODED_PROJECT_PATTERN.finditer(text):
         candidates.append(
-            (
-                match.start(),
-                DocumentaryCue.CODED_PROJECT,
-                match.group(0),
+            _DocumentaryCandidate(
+                start=match.start(),
+                cue=(DocumentaryCue.CODED_PROJECT),
+                matched_text=match.group(0),
+                priority=0,
             )
         )
 
@@ -431,24 +779,34 @@ def find_documentary_boundary(
 
             if has_nearby_project:
                 candidates.append(
-                    (
-                        expediente_match.start(),
-                        (DocumentaryCue.SECRETARY_EXPEDIENTE),
-                        expediente_match.group(0),
+                    _DocumentaryCandidate(
+                        start=expediente_match.start(),
+                        cue=(DocumentaryCue.SECRETARY_EXPEDIENTE),
+                        matched_text=expediente_match.group(0),
+                        priority=0,
                     )
                 )
 
-    for start, cue, matched_text in sorted(
+    candidates.extend(_formal_bundle_candidates(text))
+
+    for candidate in sorted(
         candidates,
         key=lambda candidate: (
-            candidate[0],
-            candidate[1].value,
+            candidate.start,
+            candidate.priority,
+            candidate.cue.value,
         ),
     ):
+        if not _allows_documentary_prefix(
+            turn=turn,
+            start=candidate.start,
+        ):
+            continue
+
         if not _has_formal_body(
             text=text,
-            candidate_start=start,
-            cue=cue,
+            candidate_start=candidate.start,
+            cue=candidate.cue,
         ):
             continue
 
@@ -458,19 +816,19 @@ def find_documentary_boundary(
             source_offset,
         ) = _source_for_turn_offset(
             turn=turn,
-            offset=start,
+            offset=candidate.start,
         )
 
         return DocumentaryBoundary(
-            turn_offset=start,
+            turn_offset=candidate.start,
             page_number=page_number,
             reading_order=reading_order,
             source_offset=source_offset,
-            cue=cue,
-            matched_text=matched_text,
+            cue=candidate.cue,
+            matched_text=candidate.matched_text,
             classification_method=("eligible_role_formal_cue_formal_body_minimum_length"),
             classification_confidence=1.0,
-            documentary_word_count=len(text[start:].split()),
+            documentary_word_count=len(text[candidate.start :].split()),
         )
 
     return None

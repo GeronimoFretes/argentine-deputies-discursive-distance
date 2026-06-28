@@ -36,6 +36,31 @@ from argentine_deputies_discursive_distance.modeling_corpus import (
     ModelingCorpusError,
     export_modeling_corpus,
 )
+from argentine_deputies_discursive_distance.nmf_grid import (
+    DEFAULT_CONFIG_PATH as DEFAULT_NMF_GRID_CONFIG_PATH,
+)
+from argentine_deputies_discursive_distance.nmf_grid import (
+    DEFAULT_CORPUS_LOCK_PATH as DEFAULT_NMF_GRID_CORPUS_LOCK_PATH,
+)
+from argentine_deputies_discursive_distance.nmf_grid import (
+    DEFAULT_DOCUMENTS_PATH as DEFAULT_NMF_GRID_DOCUMENTS_PATH,
+)
+from argentine_deputies_discursive_distance.nmf_grid import (
+    DEFAULT_EXPORT_MANIFEST_PATH as DEFAULT_NMF_GRID_EXPORT_MANIFEST_PATH,
+)
+from argentine_deputies_discursive_distance.nmf_grid import (
+    DEFAULT_OUTPUT_DIR as DEFAULT_NMF_GRID_OUTPUT_DIR,
+)
+from argentine_deputies_discursive_distance.nmf_grid import (
+    DEFAULT_PROFILE_CONFIG_PATH as DEFAULT_NMF_GRID_PROFILE_CONFIG_PATH,
+)
+from argentine_deputies_discursive_distance.nmf_grid import (
+    DEFAULT_PROFILE_MANIFEST_PATH as DEFAULT_NMF_GRID_PROFILE_MANIFEST_PATH,
+)
+from argentine_deputies_discursive_distance.nmf_grid import (
+    DEFAULT_STOPWORDS_PATH as DEFAULT_NMF_GRID_STOPWORDS_PATH,
+)
+from argentine_deputies_discursive_distance.nmf_grid import NmfGridError, fit_nmf_grid
 from argentine_deputies_discursive_distance.pdf_batch import (
     PDF_USER_AGENT,
     PdfBatchError,
@@ -209,6 +234,25 @@ def _display_corpus_profile_summary(
         f"{int(manifest['sample_counts']['all_sessions']['documents']):,}",
     )
     table.add_row("Primary sample", f"{int(manifest['sample_counts']['primary']['documents']):,}")
+
+    console.print(table)
+
+
+def _display_nmf_grid_summary(manifest: dict[str, Any]) -> None:
+    """Display the key NMF-grid run metrics."""
+    table = Table(title="NMF Grid")
+    table.add_column("Metric")
+    table.add_column("Value", justify="right")
+
+    primary_counts = manifest["primary_counts"]
+    vectorizer_settings = manifest["vectorizer_settings"]
+    nmf_settings = manifest["nmf_settings"]
+
+    table.add_row("Primary documents", f"{int(primary_counts['documents']):,}")
+    table.add_row("Primary words", f"{int(primary_counts['words']):,}")
+    table.add_row("K values", ", ".join(str(value) for value in nmf_settings["k_values"]))
+    table.add_row("Stopwords", str(manifest["stopwords"]["variant"]))
+    table.add_row("Max features", f"{int(vectorizer_settings['max_features']):,}")
 
     console.print(table)
 
@@ -561,6 +605,92 @@ def profile_modeling_corpus_command(
         raise typer.Exit(code=1) from error
 
     _display_corpus_profile_summary(manifest)
+
+
+@app.command("fit-nmf-grid")
+def fit_nmf_grid_command(
+    documents_path: Annotated[
+        Path,
+        typer.Option(
+            "--documents",
+            help="Path to locked modelling-corpus documents JSONL.",
+        ),
+    ] = DEFAULT_NMF_GRID_DOCUMENTS_PATH,
+    export_manifest_path: Annotated[
+        Path,
+        typer.Option(
+            "--export-manifest",
+            help="Path to locked modelling-corpus export manifest.",
+        ),
+    ] = DEFAULT_NMF_GRID_EXPORT_MANIFEST_PATH,
+    corpus_lock_path: Annotated[
+        Path,
+        typer.Option(
+            "--corpus-lock",
+            help="Path to locked modelling-corpus lock file.",
+        ),
+    ] = DEFAULT_NMF_GRID_CORPUS_LOCK_PATH,
+    profile_manifest_path: Annotated[
+        Path,
+        typer.Option(
+            "--corpus-profile-manifest",
+            help="Path to the locked corpus-profile manifest.",
+        ),
+    ] = DEFAULT_NMF_GRID_PROFILE_MANIFEST_PATH,
+    profile_config_path: Annotated[
+        Path,
+        typer.Option(
+            "--corpus-profile-config",
+            help="Path to the versioned corpus-profile configuration.",
+        ),
+    ] = DEFAULT_NMF_GRID_PROFILE_CONFIG_PATH,
+    config_path: Annotated[
+        Path,
+        typer.Option(
+            "--config",
+            help="Path to the versioned NMF-grid configuration.",
+        ),
+    ] = DEFAULT_NMF_GRID_CONFIG_PATH,
+    stopwords_path: Annotated[
+        Path,
+        typer.Option(
+            "--stopwords",
+            help="Path to the frozen Spanish P0 stopword file.",
+        ),
+    ] = DEFAULT_NMF_GRID_STOPWORDS_PATH,
+    output_dir: Annotated[
+        Path,
+        typer.Option(
+            "--output-dir",
+            help="Directory for NMF-grid QA outputs.",
+        ),
+    ] = DEFAULT_NMF_GRID_OUTPUT_DIR,
+    force: Annotated[
+        bool,
+        typer.Option(
+            "--force",
+            help="Overwrite existing NMF-grid outputs transactionally.",
+        ),
+    ] = False,
+) -> None:
+    """Preprocess the locked primary corpus and fit the configured NMF grid."""
+    try:
+        manifest = fit_nmf_grid(
+            documents_path=documents_path,
+            export_manifest_path=export_manifest_path,
+            corpus_lock_path=corpus_lock_path,
+            profile_manifest_path=profile_manifest_path,
+            profile_config_path=profile_config_path,
+            config_path=config_path,
+            stopwords_path=stopwords_path,
+            output_dir=output_dir,
+            force=force,
+        )
+    except NmfGridError as error:
+        console.print(f"[bold red]NMF grid failed:[/bold red] {error}")
+        raise typer.Exit(code=1) from error
+
+    _display_nmf_grid_summary(manifest)
 
 
 def main() -> None:

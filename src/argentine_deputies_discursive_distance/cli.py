@@ -9,6 +9,19 @@ from rich.console import Console
 from rich.table import Table
 
 from argentine_deputies_discursive_distance import __version__
+from argentine_deputies_discursive_distance.corpus_profile import (
+    DEFAULT_CONFIG_PATH as DEFAULT_CORPUS_PROFILE_CONFIG_PATH,
+)
+from argentine_deputies_discursive_distance.corpus_profile import (
+    DEFAULT_CORPUS_LOCK_PATH,
+    DEFAULT_DOCUMENTS_PATH,
+    DEFAULT_EXPORT_MANIFEST_PATH,
+    CorpusProfileError,
+    profile_modeling_corpus,
+)
+from argentine_deputies_discursive_distance.corpus_profile import (
+    DEFAULT_OUTPUT_DIR as DEFAULT_CORPUS_PROFILE_OUTPUT_DIR,
+)
 from argentine_deputies_discursive_distance.discover import (
     DiscoveryError,
     discover_sessions,
@@ -172,6 +185,30 @@ def _display_modeling_corpus_summary(
         ("Retained words", "retained_source_turn_word_total"),
     ):
         table.add_row(label, f"{int(summary[key]):,}")
+
+    console.print(table)
+
+
+def _display_corpus_profile_summary(
+    manifest: dict[str, Any],
+) -> None:
+    """Display corpus-profile summary metrics."""
+    table = Table(title="Corpus Profile")
+    table.add_column("Metric")
+    table.add_column("Value", justify="right")
+
+    all_counts = manifest["universes"]["all_sessions"]
+    primary_counts = manifest["universes"]["primary"]
+
+    table.add_row("All-session documents", f"{int(all_counts['documents']):,}")
+    table.add_row("Primary documents", f"{int(primary_counts['documents']):,}")
+    table.add_row("All-session words", f"{int(all_counts['words']):,}")
+    table.add_row("Primary words", f"{int(primary_counts['words']):,}")
+    table.add_row(
+        "All-session sample",
+        f"{int(manifest['sample_counts']['all_sessions']['documents']):,}",
+    )
+    table.add_row("Primary sample", f"{int(manifest['sample_counts']['primary']['documents']):,}")
 
     console.print(table)
 
@@ -462,6 +499,68 @@ def export_modeling_corpus_command(
         raise typer.Exit(code=1) from error
 
     _display_modeling_corpus_summary(summary)
+
+
+@app.command("profile-modeling-corpus")
+def profile_modeling_corpus_command(
+    documents_path: Annotated[
+        Path,
+        typer.Option(
+            "--documents",
+            help="Path to locked modelling-corpus documents JSONL.",
+        ),
+    ] = DEFAULT_DOCUMENTS_PATH,
+    export_manifest_path: Annotated[
+        Path,
+        typer.Option(
+            "--export-manifest",
+            help="Path to locked modelling-corpus export manifest.",
+        ),
+    ] = DEFAULT_EXPORT_MANIFEST_PATH,
+    corpus_lock_path: Annotated[
+        Path,
+        typer.Option(
+            "--corpus-lock",
+            help="Path to locked modelling-corpus lock file.",
+        ),
+    ] = DEFAULT_CORPUS_LOCK_PATH,
+    config_path: Annotated[
+        Path,
+        typer.Option(
+            "--config",
+            help="Path to the versioned corpus-profile configuration.",
+        ),
+    ] = DEFAULT_CORPUS_PROFILE_CONFIG_PATH,
+    output_dir: Annotated[
+        Path,
+        typer.Option(
+            "--output-dir",
+            help="Directory for corpus-profile QA outputs.",
+        ),
+    ] = DEFAULT_CORPUS_PROFILE_OUTPUT_DIR,
+    force: Annotated[
+        bool,
+        typer.Option(
+            "--force",
+            help="Overwrite an existing nonempty corpus-profile output directory.",
+        ),
+    ] = False,
+) -> None:
+    """Profile the locked modelling corpus without fitting topic models."""
+    try:
+        manifest = profile_modeling_corpus(
+            documents_path=documents_path,
+            export_manifest_path=export_manifest_path,
+            corpus_lock_path=corpus_lock_path,
+            config_path=config_path,
+            output_dir=output_dir,
+            force=force,
+        )
+    except CorpusProfileError as error:
+        console.print(f"[bold red]Corpus profile failed:[/bold red] {error}")
+        raise typer.Exit(code=1) from error
+
+    _display_corpus_profile_summary(manifest)
 
 
 def main() -> None:

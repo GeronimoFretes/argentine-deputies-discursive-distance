@@ -1,0 +1,18 @@
+{
+  "candidate_stopword_min_document_fraction": 0.1,
+  "candidate_stopword_min_total_count": 1000,
+  "context_examples_per_token": 3,
+  "minimum_bigram_token_length": 3,
+  "primary_session_categories": [
+    "legislative_debate"
+  ],
+  "profile_version": "1",
+  "random_seed": 42,
+  "sample_documents_per_stratum": 100,
+  "sample_strata": [
+    "year",
+    "session_category"
+  ],
+  "top_bigram_count": 1000,
+  "top_token_count": 1000
+}

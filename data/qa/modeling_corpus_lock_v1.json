@@ -1,0 +1,125 @@
+{
+  "chunking_configuration": {
+    "break_selection": "final_quarter_strength_then_latter_half_latest_else_hard_cap",
+    "maximum_chunk_words": 300,
+    "sentence_aware": true,
+    "separator": "\n\n",
+    "separator_policy": "distinct_selected_spoken_content_spans_are_joined_with_two_newlines",
+    "unit_preference_order": [
+      "paragraph_boundary",
+      "sentence_ending_punctuation",
+      "clause_punctuation",
+      "whitespace_hard_split"
+    ]
+  },
+  "content_classifier_version": "2",
+  "created_at_utc": "2026-06-28T17:54:49.098884+00:00",
+  "exclusion_ledger_count": 79393,
+  "export_manifest_path": "data\\processed\\modeling_corpus\\export_manifest.json",
+  "export_manifest_sha256": "eb70993d6c2f901506ced09678638c930477df98c96c9377d36fc9800ca47f1a",
+  "exporter_version": "1",
+  "git_branch": "feat/topic-modeling-final",
+  "git_commit": "ae33d62752b87e46a2fd3233e5f4e74320edb696",
+  "input_session_count": 391,
+  "input_turn_count": 118166,
+  "lock_version": "1",
+  "minimum_word_threshold": 25,
+  "modeling_document_count": 86270,
+  "modeling_word_total": 18315187,
+  "output_files": {
+    "documents": {
+      "path": "data\\processed\\modeling_corpus\\documents.jsonl",
+      "sha256": "9973fbcc8f77293762c481fdd410fa20e18686e1f0e821bf9020532b8b7d1e34",
+      "size_bytes": 418436061
+    },
+    "exclusion_ledger": {
+      "path": "data\\processed\\modeling_corpus\\exclusion_ledger.jsonl",
+      "sha256": "a970d78625c18601ccebf8423d81f3859f4e861697e5be60af98d2b1900650d9",
+      "size_bytes": 129230912
+    },
+    "source_turns": {
+      "path": "data\\processed\\modeling_corpus\\source_turns.jsonl",
+      "sha256": "3d82ae25ffbe9711310cce90d6004129191330eaf26da058334171216dc349eb",
+      "size_bytes": 275983521
+    },
+    "turn_decisions": {
+      "path": "data\\processed\\modeling_corpus\\turn_decisions.jsonl",
+      "sha256": "2c5510af9a01e8b6e5489ac4e9bb02afb090a2a90d55eeda4cc7df63373bd37f",
+      "size_bytes": 88933153
+    }
+  },
+  "override_application_ledger": [
+    {
+      "action": "exclude_turn",
+      "applied_count": 1,
+      "expected_application_count": 1,
+      "reason": "residual_documentary_packet_attributed_to_chair",
+      "source_record_id": "7e675fdbeaf2ef265c5a",
+      "turn_index": 70
+    },
+    {
+      "action": "exclude_turn",
+      "applied_count": 1,
+      "expected_application_count": 1,
+      "reason": "residual_documentary_packet_attributed_to_chair",
+      "source_record_id": "8517a4af91d960b3040d",
+      "turn_index": 615
+    },
+    {
+      "action": "exclude_turn",
+      "applied_count": 1,
+      "expected_application_count": 1,
+      "reason": "false_speaker_marker_inside_documentary_report",
+      "source_record_id": "97d30dbc0a21b640908f",
+      "turn_index": 335
+    },
+    {
+      "action": "exclude_turn",
+      "applied_count": 1,
+      "expected_application_count": 1,
+      "reason": "residual_documentary_packet_attributed_to_chair",
+      "source_record_id": "9ef518b1478325a8f039",
+      "turn_index": 349
+    },
+    {
+      "action": "retain_from_anchor_and_relabel",
+      "applied_count": 1,
+      "expected_application_count": 1,
+      "reason": "presidential_address_absorbed_into_preceding_chair_turn",
+      "source_record_id": "ada8d2921c49ab8592d6",
+      "turn_index": 15
+    },
+    {
+      "action": "exclude_turn",
+      "applied_count": 1,
+      "expected_application_count": 1,
+      "reason": "short_intervention_followed_by_documentary_packet_below_minimum_turn_length",
+      "source_record_id": "e088189573cb15fdaf8d",
+      "turn_index": 755
+    }
+  ],
+  "override_manifest_version": "1",
+  "overrides_sha256": "9df61278e3024d5a2bf364c7bb27c13762a0014c4d5dc272cffa881c886c65f4",
+  "pipeline_version": "2",
+  "positive_speech_turn_count": 115302,
+  "reconciliation_checks": {
+    "all_configured_overrides_applied_once": true,
+    "all_dates_inside_2008_2025": true,
+    "all_document_keys_map_to_retained_source_turn": true,
+    "all_input_turns_have_one_decision": true,
+    "all_parsed_turns_reconcile": true,
+    "all_retained_decisions_have_one_source_turn": true,
+    "all_source_turns_have_declared_document_count": true,
+    "every_source_turn_has_at_least_one_document": true,
+    "every_synthetic_separator_follows_policy": true,
+    "no_chunk_exceeds_maximum_words": true,
+    "no_duplicate_document_ids": true,
+    "no_duplicate_source_turn_decisions": true,
+    "no_retained_family_outside_allowed_set": true,
+    "no_retained_turn_below_minimum_words": true,
+    "retained_reconstructed_word_totals_match_chunks": true
+  },
+  "retained_source_turn_count": 38774,
+  "retained_source_turn_word_total": 18315187,
+  "status": "provisional_pending_manual_parser_audit"
+}

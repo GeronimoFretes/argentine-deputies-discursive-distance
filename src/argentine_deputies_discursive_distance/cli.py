@@ -13,6 +13,16 @@ from argentine_deputies_discursive_distance.discover import (
     DiscoveryError,
     discover_sessions,
 )
+from argentine_deputies_discursive_distance.modeling_corpus import (
+    DEFAULT_MAXIMUM_CHUNK_WORDS,
+    DEFAULT_MINIMUM_WORDS,
+    DEFAULT_MODELING_METADATA_PATH,
+    DEFAULT_MODELING_OUTPUT_ROOT,
+    DEFAULT_MODELING_OVERRIDES_PATH,
+    DEFAULT_SPEAKER_TURN_ROOT,
+    ModelingCorpusError,
+    export_modeling_corpus,
+)
 from argentine_deputies_discursive_distance.pdf_batch import (
     PDF_USER_AGENT,
     PdfBatchError,
@@ -144,6 +154,26 @@ def _display_structure_batch_summary(
     console.print(
         f"Segmentations reused: {summary['segmentation_reused_count']}/{summary['record_count']}"
     )
+
+
+def _display_modeling_corpus_summary(
+    summary: dict[str, Any],
+) -> None:
+    """Display modelling-corpus export summary metrics."""
+    table = Table(title="Modelling Corpus Export")
+    table.add_column("Metric")
+    table.add_column("Value", justify="right")
+
+    for label, key in (
+        ("Input sessions", "input_session_count"),
+        ("Input turns", "input_turn_count"),
+        ("Retained source turns", "retained_source_turn_count"),
+        ("Modelling documents", "modeling_document_count"),
+        ("Retained words", "retained_source_turn_word_total"),
+    ):
+        table.add_row(label, f"{int(summary[key]):,}")
+
+    console.print(table)
 
 
 @app.command()
@@ -362,6 +392,76 @@ def segment_structure_command(
         raise typer.Exit(code=1) from error
 
     _display_structure_batch_summary(summary)
+
+
+@app.command("export-modeling-corpus")
+def export_modeling_corpus_command(
+    speaker_turn_root: Annotated[
+        Path,
+        typer.Option(
+            "--speaker-turn-root",
+            help="Directory containing per-document speaker-turn outputs.",
+        ),
+    ] = DEFAULT_SPEAKER_TURN_ROOT,
+    overrides_path: Annotated[
+        Path,
+        typer.Option(
+            "--overrides",
+            help="Path to versioned modelling-turn overrides.",
+        ),
+    ] = DEFAULT_MODELING_OVERRIDES_PATH,
+    metadata_summary_path: Annotated[
+        Path,
+        typer.Option(
+            "--metadata-summary",
+            help="Full-corpus run summary containing session dates and categories.",
+        ),
+    ] = DEFAULT_MODELING_METADATA_PATH,
+    output_root: Annotated[
+        Path,
+        typer.Option(
+            "--output-dir",
+            help="Canonical modelling-corpus output directory.",
+        ),
+    ] = DEFAULT_MODELING_OUTPUT_ROOT,
+    minimum_words: Annotated[
+        int,
+        typer.Option(
+            "--minimum-words",
+            help="Minimum post-override source-turn word count to retain.",
+        ),
+    ] = DEFAULT_MINIMUM_WORDS,
+    maximum_chunk_words: Annotated[
+        int,
+        typer.Option(
+            "--maximum-chunk-words",
+            help="Hard maximum whitespace-delimited words per modelling document.",
+        ),
+    ] = DEFAULT_MAXIMUM_CHUNK_WORDS,
+    force: Annotated[
+        bool,
+        typer.Option(
+            "--force",
+            help="Overwrite an existing nonempty modelling-corpus output directory.",
+        ),
+    ] = False,
+) -> None:
+    """Export the final traceable spoken-discourse modelling corpus."""
+    try:
+        summary = export_modeling_corpus(
+            speaker_turn_root=speaker_turn_root,
+            overrides_path=overrides_path,
+            metadata_summary_path=metadata_summary_path,
+            output_root=output_root,
+            minimum_words=minimum_words,
+            maximum_chunk_words=maximum_chunk_words,
+            force=force,
+        )
+    except ModelingCorpusError as error:
+        console.print(f"[bold red]Modelling corpus export failed:[/bold red] {error}")
+        raise typer.Exit(code=1) from error
+
+    _display_modeling_corpus_summary(summary)
 
 
 def main() -> None:

@@ -60,6 +60,7 @@ VOCABULARY_FILENAME = "vocabulary.csv"
 GRID_METRICS_FILENAME = "grid_metrics.csv"
 GRID_REPORT_FILENAME = "grid_report.md"
 VECTORIZER_ARTIFACT_FILENAME = "vectorizer.joblib"
+ZERO_TFIDF_DOCUMENTS_FILENAME = "zero_tfidf_documents.jsonl"
 
 CONFIG_FIELDS = frozenset(
     {
@@ -75,6 +76,7 @@ CONFIG_FIELDS = frozenset(
         "stopword_variant",
         "tfidf",
         "top_terms_per_topic",
+        "zero_tfidf_policy",
     }
 )
 EXPECTED_PROFILE_FIELDS = frozenset({"all_documents", "all_words"})
@@ -93,6 +95,7 @@ TFIDF_FIELDS = frozenset(
         "sublinear_tf",
     }
 )
+ZERO_TFIDF_POLICY_FIELDS = frozenset({"maximum_fraction", "maximum_rows"})
 NMF_FIELDS = frozenset(
     {
         "alpha_H",
@@ -209,6 +212,21 @@ class NmfConfig:
 
 
 @dataclass(frozen=True, slots=True)
+class ZeroTfidfPolicy:
+    """Configured allowance for legitimate zero TF-IDF rows."""
+
+    maximum_rows: int
+    maximum_fraction: float
+
+    def to_json(self) -> dict[str, Any]:
+        """Return deterministic JSON settings."""
+        return {
+            "maximum_fraction": self.maximum_fraction,
+            "maximum_rows": self.maximum_rows,
+        }
+
+
+@dataclass(frozen=True, slots=True)
 class NmfGridConfig:
     """Strict configuration for the focused NMF grid stage."""
 
@@ -224,6 +242,7 @@ class NmfGridConfig:
     representative_documents_per_topic: int
     preprocessing_example_limit: int
     cleaned_excerpt_characters: int
+    zero_tfidf_policy: ZeroTfidfPolicy
 
     def to_json(self) -> dict[str, Any]:
         """Return deterministic JSON configuration."""
@@ -240,6 +259,7 @@ class NmfGridConfig:
             "stopword_variant": self.stopword_variant,
             "tfidf": self.tfidf.to_json(),
             "top_terms_per_topic": self.top_terms_per_topic,
+            "zero_tfidf_policy": self.zero_tfidf_policy.to_json(),
         }
 
 
@@ -281,6 +301,7 @@ class VectorizationResult:
     document_metadata: tuple[DocumentMetadata, ...]
     summary: dict[str, Any]
     vocabulary_rows: tuple[dict[str, Any], ...]
+    zero_tfidf_document_rows: tuple[dict[str, Any], ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -411,10 +432,16 @@ def load_config(path: Path) -> NmfGridConfig:
 
     tfidf_payload = _object_field(payload, "tfidf")
     nmf_payload = _object_field(payload, "nmf")
+    zero_policy_payload = _object_field(payload, "zero_tfidf_policy")
     expected_profile_payload = _object_field(payload, "expected_profile_counts")
     expected_primary_payload = _object_field(payload, "expected_primary_counts")
     _validate_exact_fields(tfidf_payload, expected=TFIDF_FIELDS, label="tfidf")
     _validate_exact_fields(nmf_payload, expected=NMF_FIELDS, label="nmf")
+    _validate_exact_fields(
+        zero_policy_payload,
+        expected=ZERO_TFIDF_POLICY_FIELDS,
+        label="zero_tfidf_policy",
+    )
     _validate_exact_fields(
         expected_profile_payload,
         expected=EXPECTED_PROFILE_FIELDS,
@@ -521,6 +548,16 @@ def load_config(path: Path) -> NmfGridConfig:
         cleaned_excerpt_characters=_safe_int(
             payload["cleaned_excerpt_characters"],
             field_name="cleaned_excerpt_characters",
+        ),
+        zero_tfidf_policy=ZeroTfidfPolicy(
+            maximum_rows=_safe_int(
+                zero_policy_payload.get("maximum_rows"),
+                field_name="zero_tfidf_policy.maximum_rows",
+            ),
+            maximum_fraction=_safe_float(
+                zero_policy_payload.get("maximum_fraction"),
+                field_name="zero_tfidf_policy.maximum_fraction",
+            ),
         ),
     )
     _validate_config_values(config)
@@ -632,6 +669,12 @@ def _validate_config_values(config: NmfGridConfig) -> None:
     if config.cleaned_excerpt_characters < 50:
         raise NmfGridError("cleaned_excerpt_characters must be at least 50.")
 
+    if config.zero_tfidf_policy.maximum_rows < 0:
+        raise NmfGridError("zero_tfidf_policy.maximum_rows cannot be negative.")
+
+    if not 0 <= config.zero_tfidf_policy.maximum_fraction <= 1:
+        raise NmfGridError("zero_tfidf_policy.maximum_fraction must be in [0, 1].")
+
 
 def _part_path(path: Path) -> Path:
     """Return the transactional part path."""
@@ -727,6 +770,7 @@ def _final_output_paths(output_dir: Path, *, k_values: Sequence[int]) -> dict[st
         "vectorizer": output_dir / VECTORIZER_ARTIFACT_FILENAME,
         "vectorizer_summary": output_dir / VECTORIZER_SUMMARY_FILENAME,
         "vocabulary": output_dir / VOCABULARY_FILENAME,
+        "zero_tfidf_documents": output_dir / ZERO_TFIDF_DOCUMENTS_FILENAME,
     }
 
     for k_value in k_values:
@@ -1262,19 +1306,52 @@ def _fit_tfidf(
     if matrix.shape[0] != len(document_metadata):
         raise NmfGridError("TF-IDF row count does not match cleaned documents.")
 
+    input_document_count = int(matrix.shape[0])
+    matrix_shape_before_zero_row_exclusion = [int(matrix.shape[0]), int(matrix.shape[1])]
     zero_row_indices = np.flatnonzero(np.diff(matrix.indptr) == 0)
     zero_tfidf_rows = int(zero_row_indices.size)
+    zero_tfidf_fraction = (
+        0.0 if input_document_count == 0 else zero_tfidf_rows / input_document_count
+    )
+    zero_policy = config.zero_tfidf_policy
+    zero_rows_within_limit = zero_tfidf_rows <= zero_policy.maximum_rows
+    zero_fraction_within_limit = zero_tfidf_fraction <= zero_policy.maximum_fraction
 
-    if zero_tfidf_rows:
+    if not zero_rows_within_limit or not zero_fraction_within_limit:
         zero_document_ids = [
             document_metadata[int(index)].document_id for index in zero_row_indices[:10]
         ]
         raise NmfGridError(
-            f"TF-IDF produced {zero_tfidf_rows} zero rows; first document IDs: {zero_document_ids}"
+            "TF-IDF zero-row policy failed: "
+            f"rows={zero_tfidf_rows} maximum_rows={zero_policy.maximum_rows}, "
+            f"fraction={zero_tfidf_fraction:.12f} "
+            f"maximum_fraction={zero_policy.maximum_fraction}; "
+            f"first document IDs: {zero_document_ids}"
         )
 
     feature_names = vectorizer.get_feature_names_out()
     vocabulary_rows = _vocabulary_rows(matrix=matrix, feature_names=feature_names)
+    zero_tfidf_document_rows = _zero_tfidf_document_rows(
+        cleaned_documents_path=cleaned_documents_path,
+        zero_row_indices=tuple(int(index) for index in zero_row_indices),
+        stopwords=stopwords,
+        excerpt_characters=config.cleaned_excerpt_characters,
+    )
+    keep_mask = np.ones(matrix.shape[0], dtype=bool)
+    keep_mask[zero_row_indices] = False
+    filtered_metadata = tuple(
+        metadata
+        for row_index, metadata in enumerate(document_metadata)
+        if bool(keep_mask[row_index])
+    )
+    matrix = matrix[keep_mask].tocsr()
+
+    if matrix.shape[0] != len(filtered_metadata):
+        raise NmfGridError("Filtered TF-IDF row count does not match filtered metadata.")
+
+    if matrix.shape[0] == 0:
+        raise NmfGridError("No modeled documents remain after zero TF-IDF row exclusion.")
+
     unigram_feature_count = sum(1 for feature in feature_names if " " not in feature)
     bigram_feature_count = len(feature_names) - unigram_feature_count
     nnz = int(matrix.nnz)
@@ -1283,10 +1360,13 @@ def _fit_tfidf(
     summary = {
         "bigram_feature_count": bigram_feature_count,
         "density": density,
-        "documents_processed": matrix.shape[0],
+        "documents_processed": input_document_count,
         "dtype": str(matrix.dtype),
         "estimated_sparse_storage_bytes": storage_bytes,
+        "input_document_count": input_document_count,
         "matrix_shape": [int(matrix.shape[0]), int(matrix.shape[1])],
+        "matrix_shape_before_zero_row_exclusion": matrix_shape_before_zero_row_exclusion,
+        "modeled_document_count": int(matrix.shape[0]),
         "nonzero_count": nnz,
         "settings": config.tfidf.to_json(),
         "sparse_matrix_format": matrix.getformat(),
@@ -1295,14 +1375,71 @@ def _fit_tfidf(
         "unigram_feature_count": unigram_feature_count,
         "vocabulary_size": int(matrix.shape[1]),
         "zero_tfidf_rows": zero_tfidf_rows,
+        "zero_tfidf_fraction": round(zero_tfidf_fraction, 12),
+        "zero_tfidf_policy": zero_policy.to_json(),
+        "zero_tfidf_rows_excluded": zero_tfidf_rows,
+        "zero_tfidf_thresholds_passed": {
+            "maximum_fraction": zero_fraction_within_limit,
+            "maximum_rows": zero_rows_within_limit,
+        },
     }
     return VectorizationResult(
         vectorizer=vectorizer,
         matrix=matrix,
-        document_metadata=document_metadata,
+        document_metadata=filtered_metadata,
         summary=summary,
         vocabulary_rows=tuple(vocabulary_rows),
+        zero_tfidf_document_rows=tuple(zero_tfidf_document_rows),
     )
+
+
+def _zero_tfidf_document_rows(
+    *,
+    cleaned_documents_path: Path,
+    zero_row_indices: Sequence[int],
+    stopwords: StopwordSet,
+    excerpt_characters: int,
+) -> list[dict[str, Any]]:
+    """Stream cleaned JSONL again and build details only for excluded zero rows."""
+    zero_index_set = set(zero_row_indices)
+    rows: list[dict[str, Any]] = []
+
+    if not zero_index_set:
+        return rows
+
+    for row_index, record in enumerate(_iter_cleaned_records(cleaned_documents_path)):
+        if row_index not in zero_index_set:
+            continue
+
+        cleaned_text = _required_cleaned_string(record, "cleaned_text")
+        tokens = lexical_tokens(cleaned_text)
+        tokens_after_stopwords = [token for token in tokens if token not in stopwords.words]
+        rows.append(
+            {
+                "chunk_index": _safe_int(record.get("chunk_index"), field_name="chunk_index"),
+                "cleaned_text_excerpt": bounded_excerpt(
+                    cleaned_text,
+                    character_limit=excerpt_characters,
+                ),
+                "document_id": _required_cleaned_string(record, "document_id"),
+                "lexical_tokens": tokens,
+                "original_row_index": row_index,
+                "reason": "zero_tfidf_vector_after_vocabulary_filtering",
+                "session_category": _required_cleaned_string(record, "session_category"),
+                "source_record_id": _required_cleaned_string(record, "source_record_id"),
+                "speaker_family": _required_cleaned_string(record, "speaker_family"),
+                "temporal_period": _required_cleaned_string(record, "temporal_period"),
+                "tokens_after_stopword_removal": tokens_after_stopwords,
+                "turn_index": _safe_int(record.get("turn_index"), field_name="turn_index"),
+                "word_count": _safe_int(record.get("word_count"), field_name="word_count"),
+                "year": _safe_int(record.get("year"), field_name="year"),
+            }
+        )
+
+    if len(rows) != len(zero_index_set):
+        raise NmfGridError("Could not reconstruct every zero TF-IDF ledger record.")
+
+    return rows
 
 
 def _vocabulary_rows(*, matrix: Any, feature_names: np.ndarray[Any, Any]) -> list[dict[str, Any]]:
@@ -1849,6 +1986,10 @@ def _grid_report(
         f"(P0 count {stopwords.p0_count:,}, P1 count {stopwords.p1_count:,})",
         f"- Stopword file SHA-256: `{stopwords.p0_sha256}`",
         f"- Vocabulary size: {vectorizer_summary['vocabulary_size']:,}",
+        f"- Input documents: {vectorizer_summary['input_document_count']:,}",
+        f"- Modeled documents: {vectorizer_summary['modeled_document_count']:,}",
+        f"- Zero TF-IDF rows excluded: {vectorizer_summary['zero_tfidf_rows_excluded']:,} "
+        f"({float(vectorizer_summary['zero_tfidf_fraction']):.6f})",
         f"- Matrix shape: {vectorizer_summary['matrix_shape']}",
         f"- Nonzero count: {vectorizer_summary['nonzero_count']:,}",
         "",
@@ -1922,6 +2063,14 @@ def _manifest_payload(
     ]
     config_snapshot = config.to_json()
     canonical_config_text = _json_text(config_snapshot)
+    primary_document_count = int(preprocessing_summary["primary_counts"]["documents"])
+    modeled_document_count = int(vectorizer_summary["modeled_document_count"])
+    zero_tfidf_rows_excluded = int(vectorizer_summary["zero_tfidf_rows_excluded"])
+    zero_tfidf_fraction = float(vectorizer_summary["zero_tfidf_fraction"])
+    zero_thresholds = cast(
+        Mapping[str, bool],
+        vectorizer_summary["zero_tfidf_thresholds_passed"],
+    )
     return {
         "canonical_configuration_sha256": hashlib.sha256(
             canonical_config_text.encode("utf-8")
@@ -1940,18 +2089,23 @@ def _manifest_payload(
             **_package_versions(),
             "python": sys.version.split()[0],
         },
+        "modeled_document_count": modeled_document_count,
         "primary_counts": preprocessing_summary["primary_counts"],
         "reconciliation_checks": {
             "all_output_hashes_match_emitted_files": True,
             "corpus_profile_hashes_match_current_inputs": True,
             "corpus_profile_reconciliation_checks_all_true": True,
             "locked_input_validation_reused": True,
+            "modeled_plus_zero_tfidf_excluded_equals_primary": (
+                modeled_document_count + zero_tfidf_rows_excluded == primary_document_count
+            ),
             "no_complete_document_topic_assignments_emitted": True,
             "primary_counts_match_expected": True,
+            "zero_tfidf_fraction_within_policy": zero_thresholds["maximum_fraction"],
             "zero_alphabetic_token_primary_documents": (
                 preprocessing_summary["documents_with_zero_alphabetic_lexical_tokens"] == 0
             ),
-            "zero_tfidf_rows": vectorizer_summary["zero_tfidf_rows"] == 0,
+            "zero_tfidf_rows_within_policy": zero_thresholds["maximum_rows"],
         },
         "stopwords": {
             "p0_count": stopwords.p0_count,
@@ -1962,6 +2116,14 @@ def _manifest_payload(
             "variant": stopwords.variant,
         },
         "vectorizer_settings": config.tfidf.to_json(),
+        "zero_tfidf_exclusions": {
+            "excluded_document_count": zero_tfidf_rows_excluded,
+            "ledger": output_files["zero_tfidf_documents"],
+            "modeled_document_count": modeled_document_count,
+            "policy": config.zero_tfidf_policy.to_json(),
+            "thresholds_passed": dict(zero_thresholds),
+            "zero_tfidf_fraction": zero_tfidf_fraction,
+        },
     }
 
 
@@ -2041,6 +2203,10 @@ def fit_nmf_grid(
             cleaned_documents_path=preprocessing.cleaned_documents_part_path,
             config=config,
             stopwords=stopwords,
+        )
+        output_files["zero_tfidf_documents"] = _write_jsonl_part(
+            paths["zero_tfidf_documents"],
+            vectorization.zero_tfidf_document_rows,
         )
         output_files["vectorizer_summary"] = _write_json_part(
             paths["vectorizer_summary"],

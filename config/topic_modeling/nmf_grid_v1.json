@@ -51,5 +51,9 @@
     "strip_accents": null,
     "sublinear_tf": true
   },
-  "top_terms_per_topic": 20
+  "top_terms_per_topic": 20,
+  "zero_tfidf_policy": {
+    "maximum_fraction": 0.001,
+    "maximum_rows": 100
+  }
 }

@@ -253,6 +253,10 @@ def grid_config(records: list[dict[str, Any]], *, stopword_variant: str = "P1") 
             "sublinear_tf": True,
         },
         "top_terms_per_topic": 8,
+        "zero_tfidf_policy": {
+            "maximum_fraction": 0.25,
+            "maximum_rows": 3,
+        },
     }
 
 
@@ -382,6 +386,7 @@ def test_bounded_smoke_outputs_every_artifact_type(tmp_path: Path) -> None:
     assert (paths.output_dir / "topic_terms_k002.csv").is_file()
     assert (paths.output_dir / "representative_documents_k003.jsonl").is_file()
     assert (paths.output_dir / "grid_report.md").is_file()
+    assert (paths.output_dir / "zero_tfidf_documents.jsonl").is_file()
 
     vectorizer_summary = read_json(paths.output_dir / "vectorizer_summary.json")
     assert vectorizer_summary["settings"]["lowercase"] is False
@@ -389,10 +394,18 @@ def test_bounded_smoke_outputs_every_artifact_type(tmp_path: Path) -> None:
     assert vectorizer_summary["sparse_matrix_format"] == "csr"
     assert vectorizer_summary["unigram_feature_count"] > 0
     assert vectorizer_summary["bigram_feature_count"] > 0
-    assert vectorizer_summary["zero_tfidf_rows"] == 0
+    assert vectorizer_summary["input_document_count"] == 12
+    assert vectorizer_summary["modeled_document_count"] == 12
+    assert vectorizer_summary["zero_tfidf_rows_excluded"] == 0
+    assert (
+        vectorizer_summary["matrix_shape_before_zero_row_exclusion"]
+        == vectorizer_summary["matrix_shape"]
+    )
     assert "salud pública" in {row["term"] for row in read_csv(paths.output_dir / "vocabulary.csv")}
     assert len(read_csv(paths.output_dir / "grid_metrics.csv")) == 2
     assert len(read_jsonl(paths.output_dir / "representative_documents_k002.jsonl")) == 10
+    assert read_jsonl(paths.output_dir / "zero_tfidf_documents.jsonl") == []
+    assert manifest["reconciliation_checks"]["modeled_plus_zero_tfidf_excluded_equals_primary"]
 
 
 def test_cli_fit_nmf_grid_command(tmp_path: Path) -> None:
@@ -467,29 +480,91 @@ def test_zero_token_document_failure(tmp_path: Path) -> None:
         run_grid(paths)
 
 
-def test_zero_tfidf_row_failure(tmp_path: Path) -> None:
+def test_permitted_zero_tfidf_rows_are_ledged_and_excluded_from_models(tmp_path: Path) -> None:
     records = [
+        *smoke_records(),
         document_record(
-            "only-p1-stopwords",
-            "señor señora señores presidente presidenta",
-            source_record_id="session-stop",
+            "zero-p1-stopwords-a",
+            "Señor señora señores presidente presidenta",
+            source_record_id="session-zero-a",
             turn_index=1,
         ),
         document_record(
-            "substantive",
-            "salud hospital medicina pacientes vacunas",
-            source_record_id="session-substantive",
+            "zero-p1-stopwords-b",
+            "Presidente presidenta señor señora señores",
+            source_record_id="session-zero-b",
             turn_index=1,
         ),
     ]
-    paths = write_grid_fixture(tmp_path / "zero-tfidf", records)
+    paths = write_grid_fixture(tmp_path / "zero-tfidf-permitted", records)
+
+    manifest = run_grid(paths)
+
+    vectorizer_summary = read_json(paths.output_dir / "vectorizer_summary.json")
+    ledger = read_jsonl(paths.output_dir / "zero_tfidf_documents.jsonl")
+    representatives = read_jsonl(paths.output_dir / "representative_documents_k002.jsonl")
+
+    assert manifest["primary_counts"]["documents"] == 14
+    assert vectorizer_summary["input_document_count"] == 14
+    assert vectorizer_summary["modeled_document_count"] == 12
+    assert vectorizer_summary["zero_tfidf_rows_excluded"] == 2
+    assert vectorizer_summary["matrix_shape_before_zero_row_exclusion"][0] == 14
+    assert vectorizer_summary["matrix_shape"][0] == 12
+    assert len(manifest["zero_tfidf_exclusions"]["ledger"]["sha256"]) == 64
+    assert manifest["zero_tfidf_exclusions"]["ledger"]["record_count"] == 2
+    assert manifest["zero_tfidf_exclusions"]["ledger"]["sha256"] == sha256_file(
+        paths.output_dir / "zero_tfidf_documents.jsonl"
+    )
+    assert manifest["reconciliation_checks"]["modeled_plus_zero_tfidf_excluded_equals_primary"]
+    assert manifest["reconciliation_checks"]["zero_tfidf_rows_within_policy"]
+    assert manifest["reconciliation_checks"]["zero_tfidf_fraction_within_policy"]
+
+    assert [row["original_row_index"] for row in ledger] == [12, 13]
+    assert [row["document_id"] for row in ledger] == [
+        "zero-p1-stopwords-a",
+        "zero-p1-stopwords-b",
+    ]
+    required_fields = {
+        "chunk_index",
+        "cleaned_text_excerpt",
+        "document_id",
+        "lexical_tokens",
+        "original_row_index",
+        "reason",
+        "session_category",
+        "source_record_id",
+        "speaker_family",
+        "temporal_period",
+        "tokens_after_stopword_removal",
+        "turn_index",
+        "word_count",
+        "year",
+    }
+    assert required_fields <= set(ledger[0])
+    assert ledger[0]["reason"] == "zero_tfidf_vector_after_vocabulary_filtering"
+    assert ledger[0]["tokens_after_stopword_removal"] == []
+    assert all(
+        row["document_id"] not in {"zero-p1-stopwords-a", "zero-p1-stopwords-b"}
+        for row in representatives
+    )
+
+
+def test_zero_tfidf_threshold_failure(tmp_path: Path) -> None:
+    records = [
+        *smoke_records(),
+        document_record(
+            "zero-p1-stopwords",
+            "Señor señora señores presidente presidenta",
+            source_record_id="session-zero",
+            turn_index=1,
+        ),
+    ]
+    paths = write_grid_fixture(tmp_path / "zero-tfidf-threshold", records)
     config = read_json(paths.grid_config)
-    config["nmf"]["k_values"] = [1]
-    config["metrics_top_n"] = 2
-    config["top_terms_per_topic"] = 3
+    config["zero_tfidf_policy"]["maximum_rows"] = 0
     write_json(paths.grid_config, config)
 
-    with pytest.raises(NmfGridError, match="zero rows"):
+    with pytest.raises(NmfGridError, match="zero-row policy failed"):
         run_grid(paths)
 
 
@@ -533,12 +608,14 @@ def test_deterministic_text_outputs_except_runtime_and_timestamp(tmp_path: Path)
     first_examples = (paths.output_dir / "preprocessing_examples.jsonl").read_bytes()
     first_vocabulary = (paths.output_dir / "vocabulary.csv").read_bytes()
     first_terms = (paths.output_dir / "topic_terms_k002.csv").read_bytes()
+    first_zero_tfidf_ledger = (paths.output_dir / "zero_tfidf_documents.jsonl").read_bytes()
     second_manifest = run_grid(paths, force=True)
 
     assert read_json(paths.output_dir / "preprocessing_summary.json") == first_summary
     assert (paths.output_dir / "preprocessing_examples.jsonl").read_bytes() == first_examples
     assert (paths.output_dir / "vocabulary.csv").read_bytes() == first_vocabulary
     assert (paths.output_dir / "topic_terms_k002.csv").read_bytes() == first_terms
+    assert (paths.output_dir / "zero_tfidf_documents.jsonl").read_bytes() == first_zero_tfidf_ledger
 
     first_manifest.pop("generated_at_utc")
     second_manifest.pop("generated_at_utc")

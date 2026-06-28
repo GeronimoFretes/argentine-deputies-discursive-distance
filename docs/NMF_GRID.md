@@ -20,6 +20,8 @@ Production defaults read:
 
 Outputs are written transactionally to `data/qa/topic_modeling/nmf_grid_v1/`.
 The command refuses a nonempty output directory unless `--force` is supplied.
+Legitimate zero TF-IDF rows are recorded in `zero_tfidf_documents.jsonl` and
+excluded from NMF only when the configured row-count and fraction thresholds pass.
 
 ## Lineage Checks
 
@@ -72,7 +74,11 @@ tokenization.
 Production settings are `ngram_range=(1, 2)`, `min_df=20`, `max_df=0.95`,
 `max_features=40000`, `sublinear_tf=True`, `smooth_idf=True`, `norm="l2"`,
 `dtype=float32`, `lowercase=False`, and no accent stripping. The fitted vectorizer is
-saved with joblib and reused for every K. Serialized model bytes may vary across
+saved with joblib and reused for every K. The cleaned primary corpus and vectorizer
+vocabulary keep all primary documents. Rows that become zero after selected stopword
+and vocabulary filtering are excluded from the modeled matrix only if
+`zero_tfidf_policy.maximum_rows` and `zero_tfidf_policy.maximum_fraction` both pass;
+the production limits are 100 rows and 0.001. Serialized model bytes may vary across
 library versions and platforms.
 
 ## NMF And Metrics
@@ -81,7 +87,8 @@ Production K values are 12, 16, 20, 24, and 28. Each model uses coordinate desce
 Frobenius loss, NNDSVDa initialization, random state 42, maximum 400 iterations,
 tolerance 0.0001, and no sparsity regularization.
 
-Metrics are reported per K:
+NMF receives the filtered sparse matrix and matching filtered document metadata after
+zero-row exclusion. Metrics are reported per K:
 
 - Topic diversity@10: unique terms across all topic top-10 lists divided by `K * 10`.
 - Topic exclusivity@10: for each selected topic-term pair, the topic weight divided

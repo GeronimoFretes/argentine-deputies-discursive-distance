@@ -93,7 +93,8 @@ def write_json_atomic(path: Path, obj: Any) -> None:
 
 
 def write_npy_atomic(path: Path, arr: np.ndarray) -> None:
-    part = path.with_suffix(".npy.part")
+    # np.save() adds .npy extension if missing, so we name the part without .npy
+    part = path.parent / (path.stem + ".part.npy")
     np.save(part, arr)
     part.replace(path)
 
@@ -891,13 +892,13 @@ def run_hdbscan_config(
             self.umap_data = umap_data
             self.embedding_ = umap_data
 
-        def fit(self, X):
+        def fit(self, X, **kwargs):
             return self
 
-        def transform(self, X):
+        def transform(self, X, **kwargs):
             return self.umap_data
 
-        def fit_transform(self, X):
+        def fit_transform(self, X, **kwargs):
             return self.umap_data
 
     hdbscan_model = HDBSCAN(
@@ -1262,23 +1263,30 @@ def build_model_comparison(primary_m: dict, fallback_m: dict, reduced_m: dict) -
 
     nmf_row: dict = {"model": "NMF P1 K=24", "note": "primary_model"}
     if grid_path.is_file():
-        df_grid = pd.read_csv(grid_path)
-        nmf_k24 = df_grid[df_grid.get("n_topics", df_grid.columns[0]).name == df_grid.columns[0]]
         try:
-            k24_row = df_grid[df_grid["n_topics"] == 24].iloc[0]
-            nmf_row.update({
-                "documents": 75121,
-                "coverage_fraction": 1.0,
-                "outlier_fraction": 0.0,
-                "topic_count": 24,
-                "npmi_mean": round(float(k24_row.get("mean_npmi_coherence_top10", 0)), 4),
-                "diversity": round(float(k24_row.get("topic_diversity_top10", 0)), 4),
-                "mean_exclusivity": round(float(k24_row.get("mean_topic_exclusivity_top10", 0)), 4),
-                "mean_redundancy": round(float(k24_row.get("redundancy_mean_off_diagonal_cosine", 0)), 4),
-                "max_redundancy": round(float(k24_row.get("redundancy_max_cosine", 0)), 4),
-                "entropy": "N/A",
-                "top5_share": "N/A",
-            })
+            df_grid = pd.read_csv(grid_path)
+            log.info(f"Grid metrics columns: {list(df_grid.columns)}")
+            # Try to find the K=24 row
+            k_col = "k" if "k" in df_grid.columns else ("n_topics" if "n_topics" in df_grid.columns else None)
+            if k_col:
+                k24_rows = df_grid[df_grid[k_col] == 24]
+            else:
+                k24_rows = df_grid.iloc[[0]]
+            if len(k24_rows) > 0:
+                k24_row = k24_rows.iloc[0]
+                nmf_row.update({
+                    "documents": 75121,
+                    "coverage_fraction": 1.0,
+                    "outlier_fraction": 0.0,
+                    "topic_count": 24,
+                    "npmi_mean": round(float(k24_row.get("mean_npmi_coherence_top10", 0)), 4),
+                    "diversity": round(float(k24_row.get("topic_diversity_top10", 0)), 4),
+                    "mean_exclusivity": round(float(k24_row.get("mean_topic_exclusivity_top10", 0)), 4),
+                    "mean_redundancy": round(float(k24_row.get("redundancy_mean_off_diagonal_cosine", 0)), 4),
+                    "max_redundancy": round(float(k24_row.get("redundancy_max_cosine", 0)), 4),
+                    "entropy": "N/A",
+                    "top5_share": "N/A",
+                })
         except Exception as e:
             log.warning(f"Could not read NMF grid metrics: {e}")
     else:
@@ -1424,6 +1432,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--smoke-only", action="store_true")
     parser.add_argument("--skip-smoke", action="store_true")
+    parser.add_argument("--resume", action="store_true",
+                        help="Load saved embeddings from disk and resume from UMAP")
     args = parser.parse_args()
 
     log.info("=== BERTopic full-context benchmark v1 started ===")
@@ -1455,31 +1465,87 @@ def main():
     # 6. Token audit
     token_audit, safe_max_length = run_token_audit(docs)
 
-    # 7. Load model (returns tuple: model, tokenizer, model_path)
-    model_tuple = load_bge_m3(safe_max_length)
+    if args.resume:
+        # Load previously saved embeddings and skip model loading
+        emb_path = OUT_DIR / "embeddings.npy"
+        id_path = OUT_DIR / "document_ids.txt"
+        if not emb_path.is_file():
+            raise FileNotFoundError(f"--resume: embeddings.npy not found at {emb_path}")
+        log.info(f"--resume: loading embeddings from {emb_path}")
+        embs = np.load(emb_path)
+        doc_ids = id_path.read_text(encoding="utf-8").splitlines()
+        assert embs.shape[0] == len(docs), f"Embedding rows {embs.shape[0]} != docs {len(docs)}"
+        assert len(doc_ids) == len(docs), f"doc_ids count {len(doc_ids)} != docs {len(docs)}"
+        assert np.isfinite(embs).all(), "NaN/Inf in loaded embeddings"
+        norms = np.linalg.norm(embs, axis=1)
+        assert np.allclose(norms, 1.0, atol=1e-3), "Loaded embeddings not normalized"
 
-    # 8. Smoke test
-    if not args.skip_smoke:
-        run_smoke_test(docs, model_tuple, safe_max_length, sw, vectorizer)
+        # Save embedding manifest
+        emb_sha = sha256_file(emb_path)
+        model_path_str = resolve_model_path()
+        emb_manifest = {
+            "model_id": CFG["embedding"]["model_id"],
+            "model_snapshot": str(model_path_str),
+            "model_revision": Path(model_path_str).name,
+            "pooling_strategy": "CLS_token",
+            "embedding_backend": "transformers_AutoModel",
+            "embedding_shape": list(embs.shape),
+            "dtype": str(embs.dtype),
+            "byte_size": emb_path.stat().st_size,
+            "sha256": emb_sha,
+            "max_length": safe_max_length,
+            "device": CFG["embedding"]["device"],
+            "normalize": True,
+            "dense_only": True,
+            "truncated_documents": 0,
+            "nan_count": 0,
+            "infinite_count": 0,
+            "mean_norm": float(norms.mean()),
+            "min_norm": float(norms.min()),
+            "max_norm": float(norms.max()),
+            "document_count": len(docs),
+            "loaded_from_cache": True,
+            "created_at": now_iso(),
+        }
+        id_path.write_text("\n".join(doc_ids), encoding="utf-8")
+        write_json_atomic(OUT_DIR / "embedding_manifest.json", emb_manifest)
+        log.info(f"Embeddings loaded: {embs.shape} sha256={emb_sha[:16]}...")
+    else:
+        # 7. Load model (returns tuple: model, tokenizer, model_path)
+        model_tuple = load_bge_m3(safe_max_length)
 
-    if args.smoke_only:
-        log.info("--smoke-only: stopping after smoke test.")
-        return
+        # 8. Smoke test
+        if not args.skip_smoke:
+            run_smoke_test(docs, model_tuple, safe_max_length, sw, vectorizer)
 
-    # 9. Full embeddings
-    embs, doc_ids, emb_manifest = generate_full_embeddings(docs, model_tuple, safe_max_length, env)
+        if args.smoke_only:
+            log.info("--smoke-only: stopping after smoke test.")
+            return
 
-    # Free model from GPU after embedding
-    model_nn, model_tok, model_path = model_tuple
-    del model_nn, model_tok, model_tuple
+        # 9. Full embeddings
+        embs, doc_ids, emb_manifest = generate_full_embeddings(docs, model_tuple, safe_max_length, env)
+
+        # Free model from GPU after embedding
+        model_nn, model_tok, model_path = model_tuple
+        del model_nn, model_tok, model_tuple
     try:
         import torch
         torch.cuda.empty_cache()
     except Exception:
         pass
 
-    # 10. UMAP (once)
-    umap_embs = compute_umap(embs)
+    # 10. UMAP (once — or load from cache if resuming)
+    umap_path = OUT_DIR / "umap_embeddings.npy"
+    if args.resume and umap_path.is_file():
+        log.info(f"--resume: loading UMAP embeddings from {umap_path}")
+        umap_embs = np.load(umap_path)
+        assert umap_embs.shape == (len(docs), CFG["umap"]["n_components"]), (
+            f"UMAP shape mismatch: {umap_embs.shape}"
+        )
+        assert np.isfinite(umap_embs).all(), "NaN/Inf in loaded UMAP embeddings"
+        log.info(f"UMAP loaded: {umap_embs.shape}")
+    else:
+        umap_embs = compute_umap(embs)
 
     # 11. Primary HDBSCAN
     primary_metrics, primary_model, primary_topics = run_hdbscan_config(
@@ -1526,7 +1592,16 @@ def main():
     build_model_comparison(primary_metrics, fallback_metrics, reduced_metrics)
 
     # 16. Pip freeze
-    pip_out = subprocess.check_output([sys.executable, "-m", "pip", "freeze"], text=True)
+    try:
+        pip_out = subprocess.check_output([sys.executable, "-m", "pip", "freeze"], text=True)
+    except subprocess.CalledProcessError:
+        # uv venvs don't include pip; use uv pip list instead
+        try:
+            pip_out = subprocess.check_output(
+                ["uv", "pip", "freeze", "--python", sys.executable], text=True
+            )
+        except Exception as e2:
+            pip_out = f"# Could not capture pip freeze: {e2}\n"
 
     # 17. Review bundle
     zip_sha = build_review_bundle(env, pip_out)

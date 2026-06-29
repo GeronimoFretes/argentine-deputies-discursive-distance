@@ -66,6 +66,19 @@ from argentine_deputies_discursive_distance.pdf_batch import (
     PdfBatchError,
     run_pdf_batch,
 )
+from argentine_deputies_discursive_distance.selected_nmf_analysis import (
+    DEFAULT_CONFIG_PATH as DEFAULT_SELECTED_NMF_CONFIG_PATH,
+)
+from argentine_deputies_discursive_distance.selected_nmf_analysis import (
+    DEFAULT_GRID_INPUT_DIR as DEFAULT_SELECTED_NMF_GRID_INPUT_DIR,
+)
+from argentine_deputies_discursive_distance.selected_nmf_analysis import (
+    DEFAULT_OUTPUT_DIR as DEFAULT_SELECTED_NMF_OUTPUT_DIR,
+)
+from argentine_deputies_discursive_distance.selected_nmf_analysis import (
+    SelectedNmfAnalysisError,
+    analyze_selected_nmf,
+)
 from argentine_deputies_discursive_distance.structure_batch import (
     StructureBatchError,
     run_structure_batch,
@@ -253,6 +266,44 @@ def _display_nmf_grid_summary(manifest: dict[str, Any]) -> None:
     table.add_row("K values", ", ".join(str(value) for value in nmf_settings["k_values"]))
     table.add_row("Stopwords", str(manifest["stopwords"]["variant"]))
     table.add_row("Max features", f"{int(vectorizer_settings['max_features']):,}")
+
+    console.print(table)
+
+
+def _display_selected_nmf_summary(manifest: dict[str, Any]) -> None:
+    """Display the key selected-NMF analysis metrics."""
+    table = Table(title="Selected NMF Analysis")
+    table.add_column("Metric")
+    table.add_column("Value", justify="right")
+
+    configuration = manifest["configuration"]
+    comparison = manifest["grid_prevalence_comparison"]
+    shapes = manifest["shapes"]
+
+    table.add_row("Selected K", str(configuration["selected_k"]))
+    table.add_row("Primary documents", f"{int(configuration['expected_primary_documents']):,}")
+    table.add_row("Modelled documents", f"{int(configuration['expected_modeled_documents']):,}")
+    table.add_row(
+        "Zero TF-IDF exclusions",
+        f"{int(configuration['expected_zero_tfidf_exclusions']):,}",
+    )
+    table.add_row("Main aggregation", str(configuration["main_aggregation"]))
+    table.add_row(
+        "Grid prevalence max diff",
+        f"{float(comparison['maximum_absolute_difference']):.10f}",
+    )
+    table.add_row(
+        "Document matrix",
+        " x ".join(str(value) for value in shapes["document_topic_weights"]),
+    )
+    table.add_row(
+        "Source-turn matrix",
+        " x ".join(str(value) for value in shapes["source_turn_topic_weights"]),
+    )
+    table.add_row(
+        "Session matrix",
+        " x ".join(str(value) for value in shapes["session_topic_weights"]),
+    )
 
     console.print(table)
 
@@ -691,6 +742,52 @@ def fit_nmf_grid_command(
         raise typer.Exit(code=1) from error
 
     _display_nmf_grid_summary(manifest)
+
+
+@app.command("analyze-selected-nmf")
+def analyze_selected_nmf_command(
+    grid_input_dir: Annotated[
+        Path,
+        typer.Option(
+            "--grid-input-dir",
+            help="Directory containing the completed NMF-grid artifacts.",
+        ),
+    ] = DEFAULT_SELECTED_NMF_GRID_INPUT_DIR,
+    config_path: Annotated[
+        Path,
+        typer.Option(
+            "--config",
+            help="Path to the versioned selected-NMF analysis configuration.",
+        ),
+    ] = DEFAULT_SELECTED_NMF_CONFIG_PATH,
+    output_dir: Annotated[
+        Path,
+        typer.Option(
+            "--output-dir",
+            help="Directory for selected-NMF analysis outputs.",
+        ),
+    ] = DEFAULT_SELECTED_NMF_OUTPUT_DIR,
+    force: Annotated[
+        bool,
+        typer.Option(
+            "--force",
+            help="Overwrite existing selected-NMF analysis outputs transactionally.",
+        ),
+    ] = False,
+) -> None:
+    """Infer selected NMF document weights and generate temporal prevalence tables."""
+    try:
+        manifest = analyze_selected_nmf(
+            grid_input_dir=grid_input_dir,
+            config_path=config_path,
+            output_dir=output_dir,
+            force=force,
+        )
+    except SelectedNmfAnalysisError as error:
+        console.print(f"[bold red]Selected NMF analysis failed:[/bold red] {error}")
+        raise typer.Exit(code=1) from error
+
+    _display_selected_nmf_summary(manifest)
 
 
 def main() -> None:

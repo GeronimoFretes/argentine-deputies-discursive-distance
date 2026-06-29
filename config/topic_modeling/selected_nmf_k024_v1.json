@@ -1,0 +1,26 @@
+{
+  "aggregation_levels": [
+    "document",
+    "source_turn",
+    "session"
+  ],
+  "analysis_version": "1",
+  "annual_year_end": 2025,
+  "annual_year_start": 2008,
+  "expected_modeled_documents": 75121,
+  "expected_primary_documents": 75123,
+  "expected_zero_tfidf_exclusions": 2,
+  "float_dtype": "float32",
+  "grid_prevalence_max_absolute_difference": 0.01,
+  "main_aggregation": "source_turn",
+  "selected_k": 24,
+  "stopword_variant": "P1",
+  "temporal_periods": [
+    "2008-2011",
+    "2012-2015",
+    "2016-2019",
+    "2020-2023",
+    "2024-2025"
+  ],
+  "weight_normalization": "row_sum_one"
+}

@@ -1,0 +1,1349 @@
+{
+  "document_count": 75121,
+  "embedding_file": "embeddings.npy",
+  "embedding_shape": [
+    75121,
+    1024
+  ],
+  "method": "Normalized mean BGE-M3 embedding centroid per non-outlier topic; cosine similarity; distinct source turns preferred.",
+  "reduced": {
+    "non_outlier_topic_count": 23,
+    "representative_rows_written": 115,
+    "representatives_per_topic_requested": 5,
+    "solution": "reduced",
+    "topics": [
+      {
+        "best_similarity": 0.82457125,
+        "centroid_norm_before_normalization": 0.71215701,
+        "distinct_source_turn_count": 8011,
+        "document_count": 14970,
+        "representatives_written": 5,
+        "topic_id": 0,
+        "worst_selected_similarity": 0.81013298
+      },
+      {
+        "best_similarity": 0.82744002,
+        "centroid_norm_before_normalization": 0.70783615,
+        "distinct_source_turn_count": 2770,
+        "document_count": 5328,
+        "representatives_written": 5,
+        "topic_id": 1,
+        "worst_selected_similarity": 0.80931062
+      },
+      {
+        "best_similarity": 0.81232101,
+        "centroid_norm_before_normalization": 0.70780736,
+        "distinct_source_turn_count": 2416,
+        "document_count": 5262,
+        "representatives_written": 5,
+        "topic_id": 2,
+        "worst_selected_similarity": 0.80028152
+      },
+      {
+        "best_similarity": 0.85079253,
+        "centroid_norm_before_normalization": 0.73903048,
+        "distinct_source_turn_count": 1610,
+        "document_count": 3349,
+        "representatives_written": 5,
+        "topic_id": 3,
+        "worst_selected_similarity": 0.84056914
+      },
+      {
+        "best_similarity": 0.84358799,
+        "centroid_norm_before_normalization": 0.73935163,
+        "distinct_source_turn_count": 3181,
+        "document_count": 3255,
+        "representatives_written": 5,
+        "topic_id": 4,
+        "worst_selected_similarity": 0.83231962
+      },
+      {
+        "best_similarity": 0.80526525,
+        "centroid_norm_before_normalization": 0.69342375,
+        "distinct_source_turn_count": 1346,
+        "document_count": 2462,
+        "representatives_written": 5,
+        "topic_id": 5,
+        "worst_selected_similarity": 0.79514837
+      },
+      {
+        "best_similarity": 0.81571043,
+        "centroid_norm_before_normalization": 0.71803516,
+        "distinct_source_turn_count": 1230,
+        "document_count": 2170,
+        "representatives_written": 5,
+        "topic_id": 6,
+        "worst_selected_similarity": 0.8096391
+      },
+      {
+        "best_similarity": 0.83855593,
+        "centroid_norm_before_normalization": 0.7333073,
+        "distinct_source_turn_count": 997,
+        "document_count": 1660,
+        "representatives_written": 5,
+        "topic_id": 7,
+        "worst_selected_similarity": 0.83078212
+      },
+      {
+        "best_similarity": 0.85524029,
+        "centroid_norm_before_normalization": 0.74930245,
+        "distinct_source_turn_count": 733,
+        "document_count": 1399,
+        "representatives_written": 5,
+        "topic_id": 8,
+        "worst_selected_similarity": 0.84104264
+      },
+      {
+        "best_similarity": 0.82294887,
+        "centroid_norm_before_normalization": 0.73103905,
+        "distinct_source_turn_count": 716,
+        "document_count": 1238,
+        "representatives_written": 5,
+        "topic_id": 9,
+        "worst_selected_similarity": 0.81016594
+      },
+      {
+        "best_similarity": 0.86963964,
+        "centroid_norm_before_normalization": 0.75852358,
+        "distinct_source_turn_count": 550,
+        "document_count": 794,
+        "representatives_written": 5,
+        "topic_id": 10,
+        "worst_selected_similarity": 0.83850545
+      },
+      {
+        "best_similarity": 0.80077827,
+        "centroid_norm_before_normalization": 0.70579123,
+        "distinct_source_turn_count": 569,
+        "document_count": 776,
+        "representatives_written": 5,
+        "topic_id": 11,
+        "worst_selected_similarity": 0.79594082
+      },
+      {
+        "best_similarity": 0.8597452,
+        "centroid_norm_before_normalization": 0.77013052,
+        "distinct_source_turn_count": 267,
+        "document_count": 579,
+        "representatives_written": 5,
+        "topic_id": 12,
+        "worst_selected_similarity": 0.84825742
+      },
+      {
+        "best_similarity": 0.84958398,
+        "centroid_norm_before_normalization": 0.739779,
+        "distinct_source_turn_count": 279,
+        "document_count": 560,
+        "representatives_written": 5,
+        "topic_id": 13,
+        "worst_selected_similarity": 0.82290816
+      },
+      {
+        "best_similarity": 0.836595,
+        "centroid_norm_before_normalization": 0.73081809,
+        "distinct_source_turn_count": 218,
+        "document_count": 535,
+        "representatives_written": 5,
+        "topic_id": 14,
+        "worst_selected_similarity": 0.81068516
+      },
+      {
+        "best_similarity": 0.82994252,
+        "centroid_norm_before_normalization": 0.73570365,
+        "distinct_source_turn_count": 185,
+        "document_count": 318,
+        "representatives_written": 5,
+        "topic_id": 15,
+        "worst_selected_similarity": 0.80975991
+      },
+      {
+        "best_similarity": 0.85778344,
+        "centroid_norm_before_normalization": 0.75684446,
+        "distinct_source_turn_count": 133,
+        "document_count": 299,
+        "representatives_written": 5,
+        "topic_id": 16,
+        "worst_selected_similarity": 0.84165716
+      },
+      {
+        "best_similarity": 0.83875263,
+        "centroid_norm_before_normalization": 0.73440957,
+        "distinct_source_turn_count": 196,
+        "document_count": 266,
+        "representatives_written": 5,
+        "topic_id": 17,
+        "worst_selected_similarity": 0.80865747
+      },
+      {
+        "best_similarity": 0.86160946,
+        "centroid_norm_before_normalization": 0.76792622,
+        "distinct_source_turn_count": 84,
+        "document_count": 199,
+        "representatives_written": 5,
+        "topic_id": 18,
+        "worst_selected_similarity": 0.8424387
+      },
+      {
+        "best_similarity": 0.86515307,
+        "centroid_norm_before_normalization": 0.78349453,
+        "distinct_source_turn_count": 151,
+        "document_count": 155,
+        "representatives_written": 5,
+        "topic_id": 19,
+        "worst_selected_similarity": 0.84317416
+      },
+      {
+        "best_similarity": 0.87068689,
+        "centroid_norm_before_normalization": 0.77998626,
+        "distinct_source_turn_count": 80,
+        "document_count": 145,
+        "representatives_written": 5,
+        "topic_id": 20,
+        "worst_selected_similarity": 0.85702324
+      },
+      {
+        "best_similarity": 0.87437809,
+        "centroid_norm_before_normalization": 0.79515505,
+        "distinct_source_turn_count": 89,
+        "document_count": 122,
+        "representatives_written": 5,
+        "topic_id": 21,
+        "worst_selected_similarity": 0.85199577
+      },
+      {
+        "best_similarity": 0.86228323,
+        "centroid_norm_before_normalization": 0.77600992,
+        "distinct_source_turn_count": 54,
+        "document_count": 111,
+        "representatives_written": 5,
+        "topic_id": 22,
+        "worst_selected_similarity": 0.83872437
+      }
+    ]
+  },
+  "selected_native": {
+    "non_outlier_topic_count": 124,
+    "representative_rows_written": 620,
+    "representatives_per_topic_requested": 5,
+    "solution": "selected_native",
+    "topics": [
+      {
+        "best_similarity": 0.85703921,
+        "centroid_norm_before_normalization": 0.75504798,
+        "distinct_source_turn_count": 1772,
+        "document_count": 3577,
+        "representatives_written": 5,
+        "topic_id": 0,
+        "worst_selected_similarity": 0.84491462
+      },
+      {
+        "best_similarity": 0.85950661,
+        "centroid_norm_before_normalization": 0.73054481,
+        "distinct_source_turn_count": 789,
+        "document_count": 2142,
+        "representatives_written": 5,
+        "topic_id": 1,
+        "worst_selected_similarity": 0.83973706
+      },
+      {
+        "best_similarity": 0.85992146,
+        "centroid_norm_before_normalization": 0.75284326,
+        "distinct_source_turn_count": 725,
+        "document_count": 1445,
+        "representatives_written": 5,
+        "topic_id": 2,
+        "worst_selected_similarity": 0.84058142
+      },
+      {
+        "best_similarity": 0.88024378,
+        "centroid_norm_before_normalization": 0.77805609,
+        "distinct_source_turn_count": 597,
+        "document_count": 1362,
+        "representatives_written": 5,
+        "topic_id": 3,
+        "worst_selected_similarity": 0.87042606
+      },
+      {
+        "best_similarity": 0.86194772,
+        "centroid_norm_before_normalization": 0.77274865,
+        "distinct_source_turn_count": 913,
+        "document_count": 1308,
+        "representatives_written": 5,
+        "topic_id": 4,
+        "worst_selected_similarity": 0.85626948
+      },
+      {
+        "best_similarity": 0.84273368,
+        "centroid_norm_before_normalization": 0.75761253,
+        "distinct_source_turn_count": 595,
+        "document_count": 1172,
+        "representatives_written": 5,
+        "topic_id": 5,
+        "worst_selected_similarity": 0.83673871
+      },
+      {
+        "best_similarity": 0.83973521,
+        "centroid_norm_before_normalization": 0.74455631,
+        "distinct_source_turn_count": 685,
+        "document_count": 1092,
+        "representatives_written": 5,
+        "topic_id": 6,
+        "worst_selected_similarity": 0.83254814
+      },
+      {
+        "best_similarity": 0.88237035,
+        "centroid_norm_before_normalization": 0.77500844,
+        "distinct_source_turn_count": 694,
+        "document_count": 997,
+        "representatives_written": 5,
+        "topic_id": 7,
+        "worst_selected_similarity": 0.86635906
+      },
+      {
+        "best_similarity": 0.8496927,
+        "centroid_norm_before_normalization": 0.74550587,
+        "distinct_source_turn_count": 432,
+        "document_count": 949,
+        "representatives_written": 5,
+        "topic_id": 8,
+        "worst_selected_similarity": 0.83499217
+      },
+      {
+        "best_similarity": 0.85050821,
+        "centroid_norm_before_normalization": 0.7545175,
+        "distinct_source_turn_count": 535,
+        "document_count": 922,
+        "representatives_written": 5,
+        "topic_id": 9,
+        "worst_selected_similarity": 0.84467113
+      },
+      {
+        "best_similarity": 0.8568154,
+        "centroid_norm_before_normalization": 0.73949033,
+        "distinct_source_turn_count": 465,
+        "document_count": 895,
+        "representatives_written": 5,
+        "topic_id": 10,
+        "worst_selected_similarity": 0.84272528
+      },
+      {
+        "best_similarity": 0.82822585,
+        "centroid_norm_before_normalization": 0.74029654,
+        "distinct_source_turn_count": 485,
+        "document_count": 851,
+        "representatives_written": 5,
+        "topic_id": 11,
+        "worst_selected_similarity": 0.82371449
+      },
+      {
+        "best_similarity": 0.85554945,
+        "centroid_norm_before_normalization": 0.75472045,
+        "distinct_source_turn_count": 456,
+        "document_count": 746,
+        "representatives_written": 5,
+        "topic_id": 12,
+        "worst_selected_similarity": 0.83710718
+      },
+      {
+        "best_similarity": 0.82913911,
+        "centroid_norm_before_normalization": 0.73373085,
+        "distinct_source_turn_count": 471,
+        "document_count": 707,
+        "representatives_written": 5,
+        "topic_id": 13,
+        "worst_selected_similarity": 0.81722152
+      },
+      {
+        "best_similarity": 0.85172462,
+        "centroid_norm_before_normalization": 0.74907088,
+        "distinct_source_turn_count": 318,
+        "document_count": 679,
+        "representatives_written": 5,
+        "topic_id": 14,
+        "worst_selected_similarity": 0.84055614
+      },
+      {
+        "best_similarity": 0.86059028,
+        "centroid_norm_before_normalization": 0.76520276,
+        "distinct_source_turn_count": 666,
+        "document_count": 679,
+        "representatives_written": 5,
+        "topic_id": 15,
+        "worst_selected_similarity": 0.84433353
+      },
+      {
+        "best_similarity": 0.86063337,
+        "centroid_norm_before_normalization": 0.75112313,
+        "distinct_source_turn_count": 353,
+        "document_count": 643,
+        "representatives_written": 5,
+        "topic_id": 16,
+        "worst_selected_similarity": 0.84031081
+      },
+      {
+        "best_similarity": 0.89119917,
+        "centroid_norm_before_normalization": 0.78088063,
+        "distinct_source_turn_count": 346,
+        "document_count": 624,
+        "representatives_written": 5,
+        "topic_id": 17,
+        "worst_selected_similarity": 0.86978602
+      },
+      {
+        "best_similarity": 0.88648337,
+        "centroid_norm_before_normalization": 0.76497495,
+        "distinct_source_turn_count": 599,
+        "document_count": 599,
+        "representatives_written": 5,
+        "topic_id": 18,
+        "worst_selected_similarity": 0.85819113
+      },
+      {
+        "best_similarity": 0.85669279,
+        "centroid_norm_before_normalization": 0.7554394,
+        "distinct_source_turn_count": 264,
+        "document_count": 575,
+        "representatives_written": 5,
+        "topic_id": 19,
+        "worst_selected_similarity": 0.84144211
+      },
+      {
+        "best_similarity": 0.86747837,
+        "centroid_norm_before_normalization": 0.7803511,
+        "distinct_source_turn_count": 495,
+        "document_count": 541,
+        "representatives_written": 5,
+        "topic_id": 20,
+        "worst_selected_similarity": 0.8633976
+      },
+      {
+        "best_similarity": 0.85924518,
+        "centroid_norm_before_normalization": 0.77996254,
+        "distinct_source_turn_count": 501,
+        "document_count": 501,
+        "representatives_written": 5,
+        "topic_id": 21,
+        "worst_selected_similarity": 0.85163713
+      },
+      {
+        "best_similarity": 0.86095095,
+        "centroid_norm_before_normalization": 0.7584281,
+        "distinct_source_turn_count": 469,
+        "document_count": 470,
+        "representatives_written": 5,
+        "topic_id": 22,
+        "worst_selected_similarity": 0.84532976
+      },
+      {
+        "best_similarity": 0.85744131,
+        "centroid_norm_before_normalization": 0.74467087,
+        "distinct_source_turn_count": 456,
+        "document_count": 456,
+        "representatives_written": 5,
+        "topic_id": 23,
+        "worst_selected_similarity": 0.82945251
+      },
+      {
+        "best_similarity": 0.81472957,
+        "centroid_norm_before_normalization": 0.71715349,
+        "distinct_source_turn_count": 304,
+        "document_count": 453,
+        "representatives_written": 5,
+        "topic_id": 24,
+        "worst_selected_similarity": 0.80504113
+      },
+      {
+        "best_similarity": 0.87559754,
+        "centroid_norm_before_normalization": 0.76894188,
+        "distinct_source_turn_count": 344,
+        "document_count": 445,
+        "representatives_written": 5,
+        "topic_id": 25,
+        "worst_selected_similarity": 0.8501153
+      },
+      {
+        "best_similarity": 0.85549414,
+        "centroid_norm_before_normalization": 0.75227082,
+        "distinct_source_turn_count": 230,
+        "document_count": 435,
+        "representatives_written": 5,
+        "topic_id": 26,
+        "worst_selected_similarity": 0.83829123
+      },
+      {
+        "best_similarity": 0.85323733,
+        "centroid_norm_before_normalization": 0.74998754,
+        "distinct_source_turn_count": 257,
+        "document_count": 426,
+        "representatives_written": 5,
+        "topic_id": 27,
+        "worst_selected_similarity": 0.83555901
+      },
+      {
+        "best_similarity": 0.84509325,
+        "centroid_norm_before_normalization": 0.75338417,
+        "distinct_source_turn_count": 260,
+        "document_count": 402,
+        "representatives_written": 5,
+        "topic_id": 28,
+        "worst_selected_similarity": 0.82947445
+      },
+      {
+        "best_similarity": 0.85213482,
+        "centroid_norm_before_normalization": 0.75709474,
+        "distinct_source_turn_count": 150,
+        "document_count": 400,
+        "representatives_written": 5,
+        "topic_id": 29,
+        "worst_selected_similarity": 0.84505081
+      },
+      {
+        "best_similarity": 0.8618716,
+        "centroid_norm_before_normalization": 0.77853638,
+        "distinct_source_turn_count": 183,
+        "document_count": 398,
+        "representatives_written": 5,
+        "topic_id": 30,
+        "worst_selected_similarity": 0.85599887
+      },
+      {
+        "best_similarity": 0.83728397,
+        "centroid_norm_before_normalization": 0.75707155,
+        "distinct_source_turn_count": 386,
+        "document_count": 397,
+        "representatives_written": 5,
+        "topic_id": 31,
+        "worst_selected_similarity": 0.8257997
+      },
+      {
+        "best_similarity": 0.81816566,
+        "centroid_norm_before_normalization": 0.71425581,
+        "distinct_source_turn_count": 290,
+        "document_count": 394,
+        "representatives_written": 5,
+        "topic_id": 32,
+        "worst_selected_similarity": 0.80447125
+      },
+      {
+        "best_similarity": 0.86314964,
+        "centroid_norm_before_normalization": 0.77021646,
+        "distinct_source_turn_count": 217,
+        "document_count": 384,
+        "representatives_written": 5,
+        "topic_id": 33,
+        "worst_selected_similarity": 0.84594917
+      },
+      {
+        "best_similarity": 0.85510939,
+        "centroid_norm_before_normalization": 0.76073116,
+        "distinct_source_turn_count": 226,
+        "document_count": 367,
+        "representatives_written": 5,
+        "topic_id": 34,
+        "worst_selected_similarity": 0.8319205
+      },
+      {
+        "best_similarity": 0.88311493,
+        "centroid_norm_before_normalization": 0.77897602,
+        "distinct_source_turn_count": 247,
+        "document_count": 354,
+        "representatives_written": 5,
+        "topic_id": 35,
+        "worst_selected_similarity": 0.85542417
+      },
+      {
+        "best_similarity": 0.88126636,
+        "centroid_norm_before_normalization": 0.77278262,
+        "distinct_source_turn_count": 189,
+        "document_count": 332,
+        "representatives_written": 5,
+        "topic_id": 36,
+        "worst_selected_similarity": 0.85845387
+      },
+      {
+        "best_similarity": 0.88442129,
+        "centroid_norm_before_normalization": 0.76998436,
+        "distinct_source_turn_count": 171,
+        "document_count": 330,
+        "representatives_written": 5,
+        "topic_id": 37,
+        "worst_selected_similarity": 0.85841018
+      },
+      {
+        "best_similarity": 0.85064995,
+        "centroid_norm_before_normalization": 0.76988643,
+        "distinct_source_turn_count": 196,
+        "document_count": 325,
+        "representatives_written": 5,
+        "topic_id": 38,
+        "worst_selected_similarity": 0.84018254
+      },
+      {
+        "best_similarity": 0.83103669,
+        "centroid_norm_before_normalization": 0.73950183,
+        "distinct_source_turn_count": 184,
+        "document_count": 319,
+        "representatives_written": 5,
+        "topic_id": 39,
+        "worst_selected_similarity": 0.81890404
+      },
+      {
+        "best_similarity": 0.84874284,
+        "centroid_norm_before_normalization": 0.72850811,
+        "distinct_source_turn_count": 161,
+        "document_count": 309,
+        "representatives_written": 5,
+        "topic_id": 40,
+        "worst_selected_similarity": 0.82226783
+      },
+      {
+        "best_similarity": 0.80697584,
+        "centroid_norm_before_normalization": 0.69996673,
+        "distinct_source_turn_count": 184,
+        "document_count": 307,
+        "representatives_written": 5,
+        "topic_id": 41,
+        "worst_selected_similarity": 0.78665477
+      },
+      {
+        "best_similarity": 0.85899127,
+        "centroid_norm_before_normalization": 0.76072568,
+        "distinct_source_turn_count": 164,
+        "document_count": 302,
+        "representatives_written": 5,
+        "topic_id": 42,
+        "worst_selected_similarity": 0.84419835
+      },
+      {
+        "best_similarity": 0.83487034,
+        "centroid_norm_before_normalization": 0.74597114,
+        "distinct_source_turn_count": 206,
+        "document_count": 302,
+        "representatives_written": 5,
+        "topic_id": 43,
+        "worst_selected_similarity": 0.82226086
+      },
+      {
+        "best_similarity": 0.86629969,
+        "centroid_norm_before_normalization": 0.77446884,
+        "distinct_source_turn_count": 166,
+        "document_count": 296,
+        "representatives_written": 5,
+        "topic_id": 44,
+        "worst_selected_similarity": 0.85970831
+      },
+      {
+        "best_similarity": 0.8764168,
+        "centroid_norm_before_normalization": 0.78761852,
+        "distinct_source_turn_count": 160,
+        "document_count": 290,
+        "representatives_written": 5,
+        "topic_id": 45,
+        "worst_selected_similarity": 0.86543339
+      },
+      {
+        "best_similarity": 0.83046842,
+        "centroid_norm_before_normalization": 0.75495571,
+        "distinct_source_turn_count": 226,
+        "document_count": 290,
+        "representatives_written": 5,
+        "topic_id": 46,
+        "worst_selected_similarity": 0.81940591
+      },
+      {
+        "best_similarity": 0.8576982,
+        "centroid_norm_before_normalization": 0.75228244,
+        "distinct_source_turn_count": 144,
+        "document_count": 289,
+        "representatives_written": 5,
+        "topic_id": 47,
+        "worst_selected_similarity": 0.83186281
+      },
+      {
+        "best_similarity": 0.8537792,
+        "centroid_norm_before_normalization": 0.74566805,
+        "distinct_source_turn_count": 174,
+        "document_count": 287,
+        "representatives_written": 5,
+        "topic_id": 48,
+        "worst_selected_similarity": 0.83444148
+      },
+      {
+        "best_similarity": 0.86187816,
+        "centroid_norm_before_normalization": 0.77069324,
+        "distinct_source_turn_count": 215,
+        "document_count": 285,
+        "representatives_written": 5,
+        "topic_id": 49,
+        "worst_selected_similarity": 0.8478651
+      },
+      {
+        "best_similarity": 0.84219742,
+        "centroid_norm_before_normalization": 0.75639117,
+        "distinct_source_turn_count": 115,
+        "document_count": 276,
+        "representatives_written": 5,
+        "topic_id": 50,
+        "worst_selected_similarity": 0.83001125
+      },
+      {
+        "best_similarity": 0.86617362,
+        "centroid_norm_before_normalization": 0.78488636,
+        "distinct_source_turn_count": 136,
+        "document_count": 263,
+        "representatives_written": 5,
+        "topic_id": 51,
+        "worst_selected_similarity": 0.85958779
+      },
+      {
+        "best_similarity": 0.85644096,
+        "centroid_norm_before_normalization": 0.75516838,
+        "distinct_source_turn_count": 109,
+        "document_count": 259,
+        "representatives_written": 5,
+        "topic_id": 52,
+        "worst_selected_similarity": 0.82664585
+      },
+      {
+        "best_similarity": 0.84561253,
+        "centroid_norm_before_normalization": 0.7670548,
+        "distinct_source_turn_count": 111,
+        "document_count": 257,
+        "representatives_written": 5,
+        "topic_id": 53,
+        "worst_selected_similarity": 0.83518457
+      },
+      {
+        "best_similarity": 0.85465038,
+        "centroid_norm_before_normalization": 0.77166903,
+        "distinct_source_turn_count": 207,
+        "document_count": 254,
+        "representatives_written": 5,
+        "topic_id": 54,
+        "worst_selected_similarity": 0.83820289
+      },
+      {
+        "best_similarity": 0.87522107,
+        "centroid_norm_before_normalization": 0.77536756,
+        "distinct_source_turn_count": 133,
+        "document_count": 253,
+        "representatives_written": 5,
+        "topic_id": 55,
+        "worst_selected_similarity": 0.86334991
+      },
+      {
+        "best_similarity": 0.85220683,
+        "centroid_norm_before_normalization": 0.75972223,
+        "distinct_source_turn_count": 142,
+        "document_count": 249,
+        "representatives_written": 5,
+        "topic_id": 56,
+        "worst_selected_similarity": 0.8360827
+      },
+      {
+        "best_similarity": 0.87189496,
+        "centroid_norm_before_normalization": 0.76113117,
+        "distinct_source_turn_count": 144,
+        "document_count": 248,
+        "representatives_written": 5,
+        "topic_id": 57,
+        "worst_selected_similarity": 0.85717911
+      },
+      {
+        "best_similarity": 0.83580071,
+        "centroid_norm_before_normalization": 0.74014872,
+        "distinct_source_turn_count": 118,
+        "document_count": 244,
+        "representatives_written": 5,
+        "topic_id": 58,
+        "worst_selected_similarity": 0.82339692
+      },
+      {
+        "best_similarity": 0.86020613,
+        "centroid_norm_before_normalization": 0.7673257,
+        "distinct_source_turn_count": 148,
+        "document_count": 241,
+        "representatives_written": 5,
+        "topic_id": 59,
+        "worst_selected_similarity": 0.85508215
+      },
+      {
+        "best_similarity": 0.88341796,
+        "centroid_norm_before_normalization": 0.78748173,
+        "distinct_source_turn_count": 161,
+        "document_count": 238,
+        "representatives_written": 5,
+        "topic_id": 60,
+        "worst_selected_similarity": 0.87054324
+      },
+      {
+        "best_similarity": 0.85579556,
+        "centroid_norm_before_normalization": 0.77151132,
+        "distinct_source_turn_count": 170,
+        "document_count": 237,
+        "representatives_written": 5,
+        "topic_id": 61,
+        "worst_selected_similarity": 0.8388927
+      },
+      {
+        "best_similarity": 0.84820449,
+        "centroid_norm_before_normalization": 0.76619202,
+        "distinct_source_turn_count": 148,
+        "document_count": 231,
+        "representatives_written": 5,
+        "topic_id": 62,
+        "worst_selected_similarity": 0.83735847
+      },
+      {
+        "best_similarity": 0.87109375,
+        "centroid_norm_before_normalization": 0.77836215,
+        "distinct_source_turn_count": 192,
+        "document_count": 231,
+        "representatives_written": 5,
+        "topic_id": 63,
+        "worst_selected_similarity": 0.85240853
+      },
+      {
+        "best_similarity": 0.88696408,
+        "centroid_norm_before_normalization": 0.77788973,
+        "distinct_source_turn_count": 149,
+        "document_count": 229,
+        "representatives_written": 5,
+        "topic_id": 64,
+        "worst_selected_similarity": 0.86851418
+      },
+      {
+        "best_similarity": 0.84685385,
+        "centroid_norm_before_normalization": 0.7703262,
+        "distinct_source_turn_count": 131,
+        "document_count": 229,
+        "representatives_written": 5,
+        "topic_id": 65,
+        "worst_selected_similarity": 0.8392188
+      },
+      {
+        "best_similarity": 0.88127744,
+        "centroid_norm_before_normalization": 0.7824387,
+        "distinct_source_turn_count": 123,
+        "document_count": 228,
+        "representatives_written": 5,
+        "topic_id": 66,
+        "worst_selected_similarity": 0.87850761
+      },
+      {
+        "best_similarity": 0.86576658,
+        "centroid_norm_before_normalization": 0.76085395,
+        "distinct_source_turn_count": 131,
+        "document_count": 227,
+        "representatives_written": 5,
+        "topic_id": 67,
+        "worst_selected_similarity": 0.84196723
+      },
+      {
+        "best_similarity": 0.86570966,
+        "centroid_norm_before_normalization": 0.78831899,
+        "distinct_source_turn_count": 150,
+        "document_count": 225,
+        "representatives_written": 5,
+        "topic_id": 68,
+        "worst_selected_similarity": 0.85269237
+      },
+      {
+        "best_similarity": 0.87718099,
+        "centroid_norm_before_normalization": 0.79227787,
+        "distinct_source_turn_count": 112,
+        "document_count": 222,
+        "representatives_written": 5,
+        "topic_id": 69,
+        "worst_selected_similarity": 0.86379492
+      },
+      {
+        "best_similarity": 0.85579085,
+        "centroid_norm_before_normalization": 0.74910355,
+        "distinct_source_turn_count": 145,
+        "document_count": 220,
+        "representatives_written": 5,
+        "topic_id": 70,
+        "worst_selected_similarity": 0.83312207
+      },
+      {
+        "best_similarity": 0.8394984,
+        "centroid_norm_before_normalization": 0.75690782,
+        "distinct_source_turn_count": 189,
+        "document_count": 219,
+        "representatives_written": 5,
+        "topic_id": 71,
+        "worst_selected_similarity": 0.83428741
+      },
+      {
+        "best_similarity": 0.87926847,
+        "centroid_norm_before_normalization": 0.76908493,
+        "distinct_source_turn_count": 103,
+        "document_count": 213,
+        "representatives_written": 5,
+        "topic_id": 72,
+        "worst_selected_similarity": 0.86035919
+      },
+      {
+        "best_similarity": 0.84826976,
+        "centroid_norm_before_normalization": 0.75175714,
+        "distinct_source_turn_count": 117,
+        "document_count": 208,
+        "representatives_written": 5,
+        "topic_id": 73,
+        "worst_selected_similarity": 0.82840753
+      },
+      {
+        "best_similarity": 0.83843821,
+        "centroid_norm_before_normalization": 0.73566914,
+        "distinct_source_turn_count": 132,
+        "document_count": 204,
+        "representatives_written": 5,
+        "topic_id": 74,
+        "worst_selected_similarity": 0.81069142
+      },
+      {
+        "best_similarity": 0.86160946,
+        "centroid_norm_before_normalization": 0.76792622,
+        "distinct_source_turn_count": 84,
+        "document_count": 199,
+        "representatives_written": 5,
+        "topic_id": 75,
+        "worst_selected_similarity": 0.8424387
+      },
+      {
+        "best_similarity": 0.8699373,
+        "centroid_norm_before_normalization": 0.77483946,
+        "distinct_source_turn_count": 121,
+        "document_count": 198,
+        "representatives_written": 5,
+        "topic_id": 76,
+        "worst_selected_similarity": 0.85201895
+      },
+      {
+        "best_similarity": 0.84416533,
+        "centroid_norm_before_normalization": 0.74362957,
+        "distinct_source_turn_count": 112,
+        "document_count": 194,
+        "representatives_written": 5,
+        "topic_id": 77,
+        "worst_selected_similarity": 0.82895714
+      },
+      {
+        "best_similarity": 0.85462737,
+        "centroid_norm_before_normalization": 0.76297635,
+        "distinct_source_turn_count": 98,
+        "document_count": 188,
+        "representatives_written": 5,
+        "topic_id": 78,
+        "worst_selected_similarity": 0.84292668
+      },
+      {
+        "best_similarity": 0.85723257,
+        "centroid_norm_before_normalization": 0.75416136,
+        "distinct_source_turn_count": 117,
+        "document_count": 187,
+        "representatives_written": 5,
+        "topic_id": 79,
+        "worst_selected_similarity": 0.83369327
+      },
+      {
+        "best_similarity": 0.87115753,
+        "centroid_norm_before_normalization": 0.77969486,
+        "distinct_source_turn_count": 108,
+        "document_count": 184,
+        "representatives_written": 5,
+        "topic_id": 80,
+        "worst_selected_similarity": 0.84503603
+      },
+      {
+        "best_similarity": 0.88530016,
+        "centroid_norm_before_normalization": 0.78313774,
+        "distinct_source_turn_count": 66,
+        "document_count": 183,
+        "representatives_written": 5,
+        "topic_id": 81,
+        "worst_selected_similarity": 0.8618927
+      },
+      {
+        "best_similarity": 0.91102558,
+        "centroid_norm_before_normalization": 0.80437219,
+        "distinct_source_turn_count": 181,
+        "document_count": 181,
+        "representatives_written": 5,
+        "topic_id": 82,
+        "worst_selected_similarity": 0.89653325
+      },
+      {
+        "best_similarity": 0.86207187,
+        "centroid_norm_before_normalization": 0.7761876,
+        "distinct_source_turn_count": 159,
+        "document_count": 178,
+        "representatives_written": 5,
+        "topic_id": 83,
+        "worst_selected_similarity": 0.84628224
+      },
+      {
+        "best_similarity": 0.88236654,
+        "centroid_norm_before_normalization": 0.7927103,
+        "distinct_source_turn_count": 99,
+        "document_count": 176,
+        "representatives_written": 5,
+        "topic_id": 84,
+        "worst_selected_similarity": 0.8656227
+      },
+      {
+        "best_similarity": 0.85784864,
+        "centroid_norm_before_normalization": 0.77184284,
+        "distinct_source_turn_count": 92,
+        "document_count": 168,
+        "representatives_written": 5,
+        "topic_id": 85,
+        "worst_selected_similarity": 0.847036
+      },
+      {
+        "best_similarity": 0.87806177,
+        "centroid_norm_before_normalization": 0.77915871,
+        "distinct_source_turn_count": 107,
+        "document_count": 167,
+        "representatives_written": 5,
+        "topic_id": 86,
+        "worst_selected_similarity": 0.8538202
+      },
+      {
+        "best_similarity": 0.86968058,
+        "centroid_norm_before_normalization": 0.78625119,
+        "distinct_source_turn_count": 122,
+        "document_count": 165,
+        "representatives_written": 5,
+        "topic_id": 87,
+        "worst_selected_similarity": 0.84694844
+      },
+      {
+        "best_similarity": 0.86938864,
+        "centroid_norm_before_normalization": 0.75927615,
+        "distinct_source_turn_count": 123,
+        "document_count": 161,
+        "representatives_written": 5,
+        "topic_id": 88,
+        "worst_selected_similarity": 0.83656055
+      },
+      {
+        "best_similarity": 0.86405623,
+        "centroid_norm_before_normalization": 0.77517956,
+        "distinct_source_turn_count": 86,
+        "document_count": 159,
+        "representatives_written": 5,
+        "topic_id": 89,
+        "worst_selected_similarity": 0.85299551
+      },
+      {
+        "best_similarity": 0.84315145,
+        "centroid_norm_before_normalization": 0.75209969,
+        "distinct_source_turn_count": 110,
+        "document_count": 156,
+        "representatives_written": 5,
+        "topic_id": 90,
+        "worst_selected_similarity": 0.83027446
+      },
+      {
+        "best_similarity": 0.88886958,
+        "centroid_norm_before_normalization": 0.79213369,
+        "distinct_source_turn_count": 100,
+        "document_count": 156,
+        "representatives_written": 5,
+        "topic_id": 91,
+        "worst_selected_similarity": 0.86517859
+      },
+      {
+        "best_similarity": 0.86436427,
+        "centroid_norm_before_normalization": 0.77664447,
+        "distinct_source_turn_count": 98,
+        "document_count": 156,
+        "representatives_written": 5,
+        "topic_id": 92,
+        "worst_selected_similarity": 0.8393271
+      },
+      {
+        "best_similarity": 0.86515307,
+        "centroid_norm_before_normalization": 0.78349453,
+        "distinct_source_turn_count": 151,
+        "document_count": 155,
+        "representatives_written": 5,
+        "topic_id": 93,
+        "worst_selected_similarity": 0.84317416
+      },
+      {
+        "best_similarity": 0.88927692,
+        "centroid_norm_before_normalization": 0.82263809,
+        "distinct_source_turn_count": 155,
+        "document_count": 155,
+        "representatives_written": 5,
+        "topic_id": 94,
+        "worst_selected_similarity": 0.88213694
+      },
+      {
+        "best_similarity": 0.84832001,
+        "centroid_norm_before_normalization": 0.76626551,
+        "distinct_source_turn_count": 130,
+        "document_count": 146,
+        "representatives_written": 5,
+        "topic_id": 95,
+        "worst_selected_similarity": 0.82018322
+      },
+      {
+        "best_similarity": 0.87068689,
+        "centroid_norm_before_normalization": 0.77998626,
+        "distinct_source_turn_count": 80,
+        "document_count": 145,
+        "representatives_written": 5,
+        "topic_id": 96,
+        "worst_selected_similarity": 0.85702324
+      },
+      {
+        "best_similarity": 0.85666144,
+        "centroid_norm_before_normalization": 0.7770797,
+        "distinct_source_turn_count": 134,
+        "document_count": 142,
+        "representatives_written": 5,
+        "topic_id": 97,
+        "worst_selected_similarity": 0.84382617
+      },
+      {
+        "best_similarity": 0.86959755,
+        "centroid_norm_before_normalization": 0.77283335,
+        "distinct_source_turn_count": 102,
+        "document_count": 141,
+        "representatives_written": 5,
+        "topic_id": 98,
+        "worst_selected_similarity": 0.84917414
+      },
+      {
+        "best_similarity": 0.89608288,
+        "centroid_norm_before_normalization": 0.7768302,
+        "distinct_source_turn_count": 117,
+        "document_count": 140,
+        "representatives_written": 5,
+        "topic_id": 99,
+        "worst_selected_similarity": 0.86639929
+      },
+      {
+        "best_similarity": 0.86062109,
+        "centroid_norm_before_normalization": 0.77442956,
+        "distinct_source_turn_count": 55,
+        "document_count": 136,
+        "representatives_written": 5,
+        "topic_id": 100,
+        "worst_selected_similarity": 0.83263701
+      },
+      {
+        "best_similarity": 0.84845591,
+        "centroid_norm_before_normalization": 0.76631451,
+        "distinct_source_turn_count": 80,
+        "document_count": 132,
+        "representatives_written": 5,
+        "topic_id": 101,
+        "worst_selected_similarity": 0.83630198
+      },
+      {
+        "best_similarity": 0.87290007,
+        "centroid_norm_before_normalization": 0.80152005,
+        "distinct_source_turn_count": 58,
+        "document_count": 132,
+        "representatives_written": 5,
+        "topic_id": 102,
+        "worst_selected_similarity": 0.86874342
+      },
+      {
+        "best_similarity": 0.88863838,
+        "centroid_norm_before_normalization": 0.7845,
+        "distinct_source_turn_count": 48,
+        "document_count": 131,
+        "representatives_written": 5,
+        "topic_id": 103,
+        "worst_selected_similarity": 0.86481088
+      },
+      {
+        "best_similarity": 0.86383003,
+        "centroid_norm_before_normalization": 0.7905823,
+        "distinct_source_turn_count": 118,
+        "document_count": 129,
+        "representatives_written": 5,
+        "topic_id": 104,
+        "worst_selected_similarity": 0.85400641
+      },
+      {
+        "best_similarity": 0.87570822,
+        "centroid_norm_before_normalization": 0.76972824,
+        "distinct_source_turn_count": 69,
+        "document_count": 126,
+        "representatives_written": 5,
+        "topic_id": 105,
+        "worst_selected_similarity": 0.83221781
+      },
+      {
+        "best_similarity": 0.89915061,
+        "centroid_norm_before_normalization": 0.80432081,
+        "distinct_source_turn_count": 71,
+        "document_count": 123,
+        "representatives_written": 5,
+        "topic_id": 106,
+        "worst_selected_similarity": 0.89084816
+      },
+      {
+        "best_similarity": 0.87914062,
+        "centroid_norm_before_normalization": 0.79131067,
+        "distinct_source_turn_count": 103,
+        "document_count": 123,
+        "representatives_written": 5,
+        "topic_id": 107,
+        "worst_selected_similarity": 0.85305768
+      },
+      {
+        "best_similarity": 0.87437809,
+        "centroid_norm_before_normalization": 0.79515505,
+        "distinct_source_turn_count": 89,
+        "document_count": 122,
+        "representatives_written": 5,
+        "topic_id": 108,
+        "worst_selected_similarity": 0.85199577
+      },
+      {
+        "best_similarity": 0.84490806,
+        "centroid_norm_before_normalization": 0.76126462,
+        "distinct_source_turn_count": 74,
+        "document_count": 122,
+        "representatives_written": 5,
+        "topic_id": 109,
+        "worst_selected_similarity": 0.81664222
+      },
+      {
+        "best_similarity": 0.8754977,
+        "centroid_norm_before_normalization": 0.7927326,
+        "distinct_source_turn_count": 82,
+        "document_count": 121,
+        "representatives_written": 5,
+        "topic_id": 110,
+        "worst_selected_similarity": 0.86284047
+      },
+      {
+        "best_similarity": 0.85592657,
+        "centroid_norm_before_normalization": 0.79268986,
+        "distinct_source_turn_count": 64,
+        "document_count": 118,
+        "representatives_written": 5,
+        "topic_id": 111,
+        "worst_selected_similarity": 0.84378451
+      },
+      {
+        "best_similarity": 0.85644943,
+        "centroid_norm_before_normalization": 0.79057765,
+        "distinct_source_turn_count": 95,
+        "document_count": 118,
+        "representatives_written": 5,
+        "topic_id": 112,
+        "worst_selected_similarity": 0.84334719
+      },
+      {
+        "best_similarity": 0.84961855,
+        "centroid_norm_before_normalization": 0.75627595,
+        "distinct_source_turn_count": 80,
+        "document_count": 114,
+        "representatives_written": 5,
+        "topic_id": 113,
+        "worst_selected_similarity": 0.82502723
+      },
+      {
+        "best_similarity": 0.84914851,
+        "centroid_norm_before_normalization": 0.77239621,
+        "distinct_source_turn_count": 72,
+        "document_count": 113,
+        "representatives_written": 5,
+        "topic_id": 114,
+        "worst_selected_similarity": 0.84117961
+      },
+      {
+        "best_similarity": 0.86228323,
+        "centroid_norm_before_normalization": 0.77600992,
+        "distinct_source_turn_count": 54,
+        "document_count": 111,
+        "representatives_written": 5,
+        "topic_id": 115,
+        "worst_selected_similarity": 0.83872437
+      },
+      {
+        "best_similarity": 0.86352211,
+        "centroid_norm_before_normalization": 0.78712493,
+        "distinct_source_turn_count": 68,
+        "document_count": 110,
+        "representatives_written": 5,
+        "topic_id": 116,
+        "worst_selected_similarity": 0.85724163
+      },
+      {
+        "best_similarity": 0.85038263,
+        "centroid_norm_before_normalization": 0.77874154,
+        "distinct_source_turn_count": 97,
+        "document_count": 109,
+        "representatives_written": 5,
+        "topic_id": 117,
+        "worst_selected_similarity": 0.82537258
+      },
+      {
+        "best_similarity": 0.87714171,
+        "centroid_norm_before_normalization": 0.77896386,
+        "distinct_source_turn_count": 54,
+        "document_count": 109,
+        "representatives_written": 5,
+        "topic_id": 118,
+        "worst_selected_similarity": 0.84672374
+      },
+      {
+        "best_similarity": 0.89738774,
+        "centroid_norm_before_normalization": 0.79896665,
+        "distinct_source_turn_count": 68,
+        "document_count": 106,
+        "representatives_written": 5,
+        "topic_id": 119,
+        "worst_selected_similarity": 0.8688553
+      },
+      {
+        "best_similarity": 0.84243292,
+        "centroid_norm_before_normalization": 0.75603807,
+        "distinct_source_turn_count": 73,
+        "document_count": 105,
+        "representatives_written": 5,
+        "topic_id": 120,
+        "worst_selected_similarity": 0.82989764
+      },
+      {
+        "best_similarity": 0.87130523,
+        "centroid_norm_before_normalization": 0.79690528,
+        "distinct_source_turn_count": 86,
+        "document_count": 103,
+        "representatives_written": 5,
+        "topic_id": 121,
+        "worst_selected_similarity": 0.86780286
+      },
+      {
+        "best_similarity": 0.87591648,
+        "centroid_norm_before_normalization": 0.78342944,
+        "distinct_source_turn_count": 72,
+        "document_count": 103,
+        "representatives_written": 5,
+        "topic_id": 122,
+        "worst_selected_similarity": 0.86105329
+      },
+      {
+        "best_similarity": 0.84619719,
+        "centroid_norm_before_normalization": 0.74380267,
+        "distinct_source_turn_count": 68,
+        "document_count": 101,
+        "representatives_written": 5,
+        "topic_id": 123,
+        "worst_selected_similarity": 0.8205446
+      }
+    ]
+  },
+  "top_n": 5
+}

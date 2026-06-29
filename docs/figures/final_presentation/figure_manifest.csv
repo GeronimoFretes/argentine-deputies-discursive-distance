@@ -7,3 +7,4 @@ file,figure,claims
 06_fiscal_topics_annual.png,Temas fiscales,"C19,C20,C21"
 07_pensions_periods.png,Jubilaciones por período,C22
 08_aggregation_robustness.png,Robustez de agregación,"C24,C25,C26,C27"
+09_model_comparison.png,Comparación estructural NMF-BERTopic,C28

@@ -1,7 +1,7 @@
 [project]
 name = "argentine-deputies-discursive-distance"
 version = "0.1.0"
-description = "NLP analysis of government–opposition discursive distance in Argentina's Chamber of Deputies."
+description = "Topic modeling and temporal analysis of parliamentary discourse in Argentina's Chamber of Deputies."
 readme = "README.md"
 authors = [
     { name = "geronimofretes", email = "gfretes@itba.edu.ar" }

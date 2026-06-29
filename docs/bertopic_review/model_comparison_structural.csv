@@ -1,0 +1,4 @@
+model,documents,coverage_fraction,coverage_percent,outlier_fraction,outlier_percent,topic_count,assignment_type,longitudinal_use,project_role
+NMF P1 K=24,75121,1.0,100.0,0.0,0.0,24,Soft mixture over all 24 topics,Primary,Primary topic map and temporal prevalence
+BERTopic BGE-M3 native,75121,0.6117064469322826,61.17064469322826,0.3882935530677174,38.82935530677174,124,One cluster or outlier,Exploratory only,Semantic clustering benchmark
+BERTopic BGE-M3 reduced,75121,0.6117064469322826,61.17064469322826,0.3882935530677174,38.82935530677174,23,One reduced cluster or outlier,Not used,Interpretability diagnostic

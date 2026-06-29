@@ -1,3 +1,5 @@
+> **Superseded:** This operational summary describes an abandoned government–opposition discursive-distance scope. The canonical final summary is [`FINAL_PROJECT_STATE.md`](FINAL_PROJECT_STATE.md).
+
 # Current Project State
 
 Last updated: 2026-06-22

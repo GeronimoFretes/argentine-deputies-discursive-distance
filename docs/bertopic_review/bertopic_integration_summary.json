@@ -1,0 +1,76 @@
+{
+  "comparison_rows": [
+    {
+      "assignment_type": "Soft mixture over all 24 topics",
+      "coverage_fraction": 1.0,
+      "coverage_percent": 100.0,
+      "documents": 75121,
+      "longitudinal_use": "Primary",
+      "model": "NMF P1 K=24",
+      "outlier_fraction": 0.0,
+      "outlier_percent": 0.0,
+      "project_role": "Primary topic map and temporal prevalence",
+      "topic_count": 24
+    },
+    {
+      "assignment_type": "One cluster or outlier",
+      "coverage_fraction": 0.6117064469322826,
+      "coverage_percent": 61.17064469322826,
+      "documents": 75121,
+      "longitudinal_use": "Exploratory only",
+      "model": "BERTopic BGE-M3 native",
+      "outlier_fraction": 0.3882935530677174,
+      "outlier_percent": 38.82935530677174,
+      "project_role": "Semantic clustering benchmark",
+      "topic_count": 124
+    },
+    {
+      "assignment_type": "One reduced cluster or outlier",
+      "coverage_fraction": 0.6117064469322826,
+      "coverage_percent": 61.17064469322826,
+      "documents": 75121,
+      "longitudinal_use": "Not used",
+      "model": "BERTopic BGE-M3 reduced",
+      "outlier_fraction": 0.3882935530677174,
+      "outlier_percent": 38.82935530677174,
+      "project_role": "Interpretability diagnostic",
+      "topic_count": 23
+    }
+  ],
+  "decision": "BERTopic is retained as an exploratory supporting benchmark; NMF P1 K=24 remains the primary longitudinal model.",
+  "interpretation": "Full-context BGE-M3 substantially improved native BERTopic coverage relative to the earlier truncated MiniLM benchmark. Since both the embedding model and available context changed, the improvement cannot be attributed exclusively to truncation. With 38.8% outliers, BERTopic remains exploratory.",
+  "metric_comparability_note": "The current BERTopic lexical NPMI, exclusivity and redundancy implementations are not compared directly with NMF because their definitions differ.",
+  "native": {
+    "assigned_documents": 45952,
+    "coverage_fraction": 0.6117064469322826,
+    "documents": 75121,
+    "largest_topic_documents": 3577,
+    "median_topic_documents": 234.0,
+    "outlier_count": 29169,
+    "outlier_fraction": 0.3882935530677174,
+    "top5_share_assigned": 0.2140059192200557,
+    "topic_count": 124
+  },
+  "reduced": {
+    "assigned_documents": 45952,
+    "coverage_fraction": 0.6117064469322826,
+    "documents": 75121,
+    "largest_topic_documents": 14970,
+    "median_topic_documents": 776.0,
+    "outlier_count": 29169,
+    "outlier_fraction": 0.3882935530677174,
+    "top5_share_assigned": 0.6999477715877437,
+    "topic_count": 23
+  },
+  "selected_configuration": {
+    "created_at": "2026-06-29T06:07:13.414647+00:00",
+    "fallback_outlier_fraction": 0.387,
+    "improvement_pp": 0.13,
+    "primary_outlier_fraction": 0.3883,
+    "reason": "Primary outlier fraction 38.8% <= 45% threshold; primary retained",
+    "rule_applied": "predeclared_v1",
+    "selected": "primary",
+    "threshold_45pct": false,
+    "threshold_5pp_improvement": false
+  }
+}

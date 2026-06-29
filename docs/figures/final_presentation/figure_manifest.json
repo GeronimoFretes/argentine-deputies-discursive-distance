@@ -1,68 +1,75 @@
 [
   {
-    "file": "01_nmf_k_selection.png",
-    "figure": "Selección de K",
     "claims": [
       "C07",
       "C08",
       "C09",
       "C10"
-    ]
+    ],
+    "figure": "Selección de K",
+    "file": "01_nmf_k_selection.png"
   },
   {
-    "file": "02_p0_p1_sensitivity.png",
-    "figure": "Sensibilidad P0-P1",
     "claims": [
       "C11",
       "C12",
       "C13",
       "C14"
-    ]
+    ],
+    "figure": "Sensibilidad P0-P1",
+    "file": "02_p0_p1_sensitivity.png"
   },
   {
-    "file": "03_topic_map.png",
+    "claims": [],
     "figure": "Mapa de temas",
-    "claims": []
+    "file": "03_topic_map.png"
   },
   {
-    "file": "04_justice_annual.png",
-    "figure": "La justicia alcanza una concentración excepcional en 2013",
     "claims": [
       "C16"
-    ]
+    ],
+    "figure": "La justicia alcanza una concentración excepcional en 2013",
+    "file": "04_justice_annual.png"
   },
   {
-    "file": "05_rights_gender_annual.png",
-    "figure": "Derechos, género y salud reproductiva alcanzan su máximo en 2018",
     "claims": [
       "C17",
       "C18"
-    ]
+    ],
+    "figure": "Derechos, género y salud reproductiva alcanzan su máximo en 2018",
+    "file": "05_rights_gender_annual.png"
   },
   {
-    "file": "06_fiscal_topics_annual.png",
-    "figure": "Temas fiscales",
     "claims": [
       "C19",
       "C20",
       "C21"
-    ]
+    ],
+    "figure": "Temas fiscales",
+    "file": "06_fiscal_topics_annual.png"
   },
   {
-    "file": "07_pensions_periods.png",
-    "figure": "Jubilaciones por período",
     "claims": [
       "C22"
-    ]
+    ],
+    "figure": "Jubilaciones por período",
+    "file": "07_pensions_periods.png"
   },
   {
-    "file": "08_aggregation_robustness.png",
-    "figure": "Robustez de agregación",
     "claims": [
       "C24",
       "C25",
       "C26",
       "C27"
-    ]
+    ],
+    "figure": "Robustez de agregación",
+    "file": "08_aggregation_robustness.png"
+  },
+  {
+    "claims": [
+      "C28"
+    ],
+    "figure": "Comparación estructural NMF-BERTopic",
+    "file": "09_model_comparison.png"
   }
 ]

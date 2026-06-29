@@ -1,0 +1,9 @@
+file,figure,claims
+01_nmf_k_selection.png,Selección de K,"C07,C08,C09,C10"
+02_p0_p1_sensitivity.png,Sensibilidad P0-P1,"C11,C12,C13,C14"
+03_topic_map.png,Mapa de temas,
+04_justice_annual.png,La justicia alcanza una concentración excepcional en 2013,C16
+05_rights_gender_annual.png,"Derechos, género y salud reproductiva alcanzan su máximo en 2018","C17,C18"
+06_fiscal_topics_annual.png,Temas fiscales,"C19,C20,C21"
+07_pensions_periods.png,Jubilaciones por período,C22
+08_aggregation_robustness.png,Robustez de agregación,"C24,C25,C26,C27"

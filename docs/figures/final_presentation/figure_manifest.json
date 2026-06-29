@@ -1,0 +1,68 @@
+[
+  {
+    "file": "01_nmf_k_selection.png",
+    "figure": "Selección de K",
+    "claims": [
+      "C07",
+      "C08",
+      "C09",
+      "C10"
+    ]
+  },
+  {
+    "file": "02_p0_p1_sensitivity.png",
+    "figure": "Sensibilidad P0-P1",
+    "claims": [
+      "C11",
+      "C12",
+      "C13",
+      "C14"
+    ]
+  },
+  {
+    "file": "03_topic_map.png",
+    "figure": "Mapa de temas",
+    "claims": []
+  },
+  {
+    "file": "04_justice_annual.png",
+    "figure": "La justicia alcanza una concentración excepcional en 2013",
+    "claims": [
+      "C16"
+    ]
+  },
+  {
+    "file": "05_rights_gender_annual.png",
+    "figure": "Derechos, género y salud reproductiva alcanzan su máximo en 2018",
+    "claims": [
+      "C17",
+      "C18"
+    ]
+  },
+  {
+    "file": "06_fiscal_topics_annual.png",
+    "figure": "Temas fiscales",
+    "claims": [
+      "C19",
+      "C20",
+      "C21"
+    ]
+  },
+  {
+    "file": "07_pensions_periods.png",
+    "figure": "Jubilaciones por período",
+    "claims": [
+      "C22"
+    ]
+  },
+  {
+    "file": "08_aggregation_robustness.png",
+    "figure": "Robustez de agregación",
+    "claims": [
+      "C24",
+      "C25",
+      "C26",
+      "C27"
+    ]
+  }
+]

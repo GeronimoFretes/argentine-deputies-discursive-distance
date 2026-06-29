@@ -1,0 +1,76 @@
+{
+  "version": "1",
+  "description": "Full-context BERTopic benchmark using BAAI/bge-m3 dense embeddings on 75,121 NMF-matched modelling documents",
+  "corpus": {
+    "handoff_dir": "tmp/bertopic_handoff",
+    "cleaned_documents_file": "cleaned_primary_documents.jsonl",
+    "zero_tfidf_file": "zero_tfidf_documents.jsonl",
+    "expected_input_count": 75123,
+    "expected_excluded_count": 2,
+    "expected_benchmark_count": 75121,
+    "expected_excluded_ids": [
+      "149f26717864d80cd384__turn_000139__chunk_002",
+      "86d2b7da9455807f3edf__turn_000276__chunk_002"
+    ],
+    "embed_field": "modeling_text",
+    "lexical_field": "cleaned_text"
+  },
+  "stopwords": {
+    "file": "config/topic_modeling/stopwords_es_p0_v1.txt",
+    "variant": "P1",
+    "expected_p0_count": 310,
+    "expected_p1_count": 315,
+    "expected_p1_additions": ["presidenta", "presidente", "señor", "señora", "señores"]
+  },
+  "embedding": {
+    "model_id": "BAAI/bge-m3",
+    "use_dense_only": true,
+    "normalize": true,
+    "initial_batch_size": 32,
+    "min_batch_size": 4,
+    "device": "cuda"
+  },
+  "umap": {
+    "n_neighbors": 15,
+    "n_components": 5,
+    "min_dist": 0.0,
+    "metric": "cosine",
+    "random_state": 42
+  },
+  "hdbscan_primary": {
+    "min_cluster_size": 100,
+    "min_samples": 10,
+    "metric": "euclidean",
+    "cluster_selection_method": "eom"
+  },
+  "hdbscan_fallback": {
+    "min_cluster_size": 100,
+    "min_samples": 5,
+    "metric": "euclidean",
+    "cluster_selection_method": "eom"
+  },
+  "selection_rule": {
+    "default": "primary",
+    "fallback_conditions": {
+      "primary_outlier_fraction_above": 0.45,
+      "fallback_outlier_improvement_min_pp": 5.0,
+      "fallback_must_not_degenerate": true,
+      "fallback_must_not_worsen_coherence": true
+    }
+  },
+  "reduction": {
+    "nr_topics": 24
+  },
+  "vectorizer": {
+    "ngram_range": [1, 2],
+    "min_df": 5,
+    "analyzer": "word"
+  },
+  "smoke_test": {
+    "sample_size_approx": 3000,
+    "random_state": 42,
+    "years": [2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]
+  },
+  "output_dir": "outputs/bertopic_full_context_v1",
+  "experiment_id": "bertopic_full_context_v1"
+}

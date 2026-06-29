@@ -1,0 +1,55 @@
+{
+  "cleaned_excerpt_characters": 500,
+  "expected_primary_counts": {
+    "documents": 75123,
+    "sessions": 243,
+    "source_turns": 34060,
+    "words": 15901236
+  },
+  "expected_profile_counts": {
+    "all_documents": 86270,
+    "all_words": 18315187
+  },
+  "grid_version": "1",
+  "metrics_top_n": 10,
+  "nmf": {
+    "alpha_H": 0.0,
+    "alpha_W": 0.0,
+    "beta_loss": "frobenius",
+    "init": "nndsvda",
+    "k_values": [
+      24
+    ],
+    "l1_ratio": 0.0,
+    "max_iter": 400,
+    "random_state": 42,
+    "solver": "cd",
+    "tol": 0.0001
+  },
+  "preprocessing_example_limit": 25,
+  "primary_session_categories": [
+    "legislative_debate"
+  ],
+  "representative_documents_per_topic": 5,
+  "stopword_variant": "P0",
+  "tfidf": {
+    "dtype": "float32",
+    "lowercase": false,
+    "max_df": 0.95,
+    "max_features": 40000,
+    "min_df": 20,
+    "ngram_range": [
+      1,
+      2
+    ],
+    "norm": "l2",
+    "smooth_idf": true,
+    "strip_accents": null,
+    "sublinear_tf": true
+  },
+  "top_terms_per_topic": 20,
+  "zero_tfidf_policy": {
+    "maximum_fraction": 0.001,
+    "maximum_rows": 100
+  }
+}
